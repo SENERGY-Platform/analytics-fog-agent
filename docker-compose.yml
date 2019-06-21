@@ -1,0 +1,19 @@
+version: '2'
+services:
+  agent1:
+    build: .
+    environment:
+      - BROKER_ADDRESS=tcp://broker:1883
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  agent2:
+    build: .
+    environment:
+      - BROKER_ADDRESS=tcp://broker:1883
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  broker:
+    image: eclipse-mosquitto
+    ports:
+      - 1883:1883
+      - 9001:9001
