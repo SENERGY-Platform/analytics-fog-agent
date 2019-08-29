@@ -17,9 +17,3 @@ services:
     ports:
       - 1883:1883
       - 9001:9001
-  test-client-connector:
-    container_name: test-client-connector
-    build: https://github.com/SENERGY-Platform/test-client-connector.git
-    image: test-client-connector
-    volumes:
-      - './cc-lib:/usr/src/app/cc-lib'
