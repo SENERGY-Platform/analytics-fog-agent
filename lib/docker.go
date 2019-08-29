@@ -19,15 +19,16 @@ package lib
 import (
 	"context"
 	"fmt"
+	"io"
+	"os"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	docker "github.com/docker/docker/client"
-	"io"
-	"os"
 )
 
-func PullImage (imageName string)  {
+func PullImage(imageName string) {
 	ctx := context.Background()
 	cli, err := docker.NewEnvClient()
 	if err != nil {
@@ -44,7 +45,7 @@ func PullImage (imageName string)  {
 	io.Copy(os.Stdout, out)
 }
 
-func RunContainer(imageName string) string  {
+func RunContainer(imageName string, env []string) string {
 	ctx := context.Background()
 	cli, err := docker.NewEnvClient()
 	if err != nil {
@@ -59,6 +60,7 @@ func RunContainer(imageName string) string  {
 
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image: imageName,
+		Env:   env,
 	}, nil, nil, "")
 	if err != nil {
 		panic(err)
@@ -72,7 +74,7 @@ func RunContainer(imageName string) string  {
 	return resp.ID
 }
 
-func ListAllContainers () {
+func ListAllContainers() {
 	cli, err := docker.NewEnvClient()
 	if err != nil {
 		panic(err)
@@ -88,7 +90,7 @@ func ListAllContainers () {
 	}
 }
 
-func StopAllContainers()  {
+func StopAllContainers() {
 	ctx := context.Background()
 	cli, err := docker.NewEnvClient()
 	if err != nil {
@@ -130,7 +132,7 @@ func RemoveAllContainers() {
 		panic(err)
 	}
 
-	removeOptions := types.ContainerRemoveOptions{Force:true}
+	removeOptions := types.ContainerRemoveOptions{Force: true}
 
 	for _, ct := range containers {
 		fmt.Print("Remove container ", ct.ID[:10], "... ")
@@ -141,7 +143,7 @@ func RemoveAllContainers() {
 	}
 }
 
-func StopContainer(id string)  {
+func StopContainer(id string) {
 	ctx := context.Background()
 	cli, err := docker.NewEnvClient()
 	if err != nil {
@@ -164,7 +166,7 @@ func StopContainer(id string)  {
 	}
 }
 
-func RemoveContainer (id string) {
+func RemoveContainer(id string) {
 	ctx := context.Background()
 	cli, err := docker.NewEnvClient()
 	if err != nil {
@@ -185,7 +187,7 @@ func RemoveContainer (id string) {
 		panic(err)
 	}
 
-	removeOptions := types.ContainerRemoveOptions{Force:true}
+	removeOptions := types.ContainerRemoveOptions{Force: true}
 
 	for _, ct := range containers {
 		if id == ct.ID {

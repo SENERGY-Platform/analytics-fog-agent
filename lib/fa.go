@@ -53,7 +53,12 @@ func processMessage(message MQTT.Message) {
 
 func startOperator(operator OperatorJob) (containerId string) {
 	PullImage(operator.ImageId)
-	containerId = RunContainer(operator.ImageId)
+	inputTopics, err := json.Marshal(operator.InputTopics)
+	if err != nil {
+		panic(err)
+	}
+	env := []string{"CONFIG=" + string(inputTopics)}
+	containerId = RunContainer(operator.ImageId, env)
 	return
 }
 

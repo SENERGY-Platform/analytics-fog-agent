@@ -36,5 +36,18 @@ type OperatorJob struct {
 	ImageId     string        `json:"imageId,omitempty"`
 	Agent       Configuration `json:"agent,omitempty"`
 	ContainerId string        `json:"containerId,omitempty"`
+	InputTopics []InputTopic  `json:"inputTopics,omitempty"`
 	Config      []struct{}    `json:"config,omitempty"`
+}
+
+type InputTopic struct {
+	Name        string    `json:"name,omitempty"`
+	FilterType  string    `json:"filterType,omitempty"`
+	FilterValue string    `json:"filterValue,omitempty"`
+	Mappings    []Mapping `json:"mappings,omitempty"`
+}
+
+type Mapping struct {
+	Dest   string `json:"dest,omitempty"`
+	Source string `json:"source,omitempty"`
 }
