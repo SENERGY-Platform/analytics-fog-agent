@@ -45,18 +45,20 @@ func PullImage(imageName string) {
 	io.Copy(os.Stdout, out)
 }
 
-func RunContainer(imageName string, env []string) string {
+func RunContainer(imageName string, env []string, pull bool) string {
 	ctx := context.Background()
 	cli, err := docker.NewEnvClient()
 	if err != nil {
 		panic(err)
 	}
 
-	out, err := cli.ImagePull(ctx, imageName, types.ImagePullOptions{})
-	if err != nil {
-		panic(err)
+	if pull {
+		out, err := cli.ImagePull(ctx, imageName, types.ImagePullOptions{})
+		if err != nil {
+			panic(err)
+		}
+		io.Copy(os.Stdout, out)
 	}
-	io.Copy(os.Stdout, out)
 
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image: imageName,

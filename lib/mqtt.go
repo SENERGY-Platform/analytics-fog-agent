@@ -37,7 +37,7 @@ func ConnectMQTTBroker() {
 
 	hostname, _ := os.Hostname()
 
-	server := flag.String("server", GetEnv("BROKER_ADDRESS", "tcp://127.0.0.1:1883"), "The full url of the MQTT server to connect to ex: tcp://127.0.0.1:1883")
+	server := flag.String("server", "tcp://"+GetEnv("BROKER_HOST", "localhost")+":"+GetEnv("BROKER_PORT", "1883"), "The full url of the MQTT server to connect to ex: tcp://127.0.0.1:1883")
 	topic := flag.String("topic", GetConf().Id, "Topic to subscribe to")
 	qos = flag.Int("qos", 0, "The QoS to subscribe to messages at")
 	retained = flag.Bool("retained", false, "Are the messages sent with the retained flag")

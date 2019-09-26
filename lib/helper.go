@@ -16,7 +16,9 @@
 
 package lib
 
-import "os"
+import (
+	"os"
+)
 
 func GetEnv(key, fallback string) string {
 	value := os.Getenv(key)

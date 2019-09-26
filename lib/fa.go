@@ -52,13 +52,20 @@ func processMessage(message MQTT.Message) {
 }
 
 func startOperator(operator OperatorJob) (containerId string) {
-	PullImage(operator.ImageId)
 	inputTopics, err := json.Marshal(operator.InputTopics)
 	if err != nil {
 		panic(err)
 	}
-	env := []string{"CONFIG=" + string(inputTopics)}
-	containerId = RunContainer(operator.ImageId, env)
+	config, err := json.Marshal(operator.Config)
+	if err != nil {
+		panic(err)
+	}
+	env := []string{"INPUT=" + string(inputTopics),
+		"CONFIG=" + string(config),
+		"BROKER_HOST=" + GetEnv("BROKER_HOST", "localhost"),
+		"BROKER_PORT=" + GetEnv("BROKER_PORT", "1883"),
+	}
+	containerId = RunContainer(operator.ImageId, env, true)
 	return
 }
 
