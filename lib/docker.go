@@ -52,7 +52,7 @@ func RunContainer(imageName string, env []string, pull bool) string {
 		panic(err)
 	}
 
-	if pull {
+	if pull == true {
 		out, err := cli.ImagePull(ctx, imageName, types.ImagePullOptions{})
 		if err != nil {
 			panic(err)
