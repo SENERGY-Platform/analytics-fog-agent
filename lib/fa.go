@@ -62,7 +62,7 @@ func startOperator(operator OperatorJob) (containerId string) {
 	}
 	env := []string{"INPUT=" + string(inputTopics),
 		"CONFIG=" + string(config),
-		"BROKER_HOST=" + GetEnv("BROKER_HOST", "localhost"),
+		"BROKER_HOST=" + GetEnv("CONTAINER_BROKER_HOST", GetEnv("BROKER_HOST", "localhost")),
 		"BROKER_PORT=" + GetEnv("BROKER_PORT", "1883"),
 	}
 	containerId = RunContainer(operator.ImageId, env, true)
