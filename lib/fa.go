@@ -18,6 +18,7 @@ package lib
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
@@ -65,7 +66,12 @@ func startOperator(operator OperatorJob) (containerId string) {
 		"BROKER_HOST=" + GetEnv("CONTAINER_BROKER_HOST", GetEnv("BROKER_HOST", "localhost")),
 		"BROKER_PORT=" + GetEnv("BROKER_PORT", "1883"),
 	}
-	containerId = RunContainer(operator.ImageId, env, true)
+	pull, err := strconv.ParseBool(GetEnv("CONTAINER_PULL_IMAGE", "true"))
+	if err != nil {
+		fmt.Println("Invalid config for CONTAINER_PULL_IMAGE")
+		pull = true
+	}
+	containerId = RunContainer(operator.ImageId, env, pull, operator.Config.PipelineId, operator.Config.OperatorId)
 	return
 }
 
