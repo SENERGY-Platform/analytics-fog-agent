@@ -25,7 +25,7 @@ import (
 	"github.com/docker/distribution/uuid"
 )
 
-const CONFPATH = "./conf.json"
+const CONFPATH = "./data/conf.json"
 
 var CONF Configuration
 
