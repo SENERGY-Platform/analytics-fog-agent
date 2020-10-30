@@ -45,7 +45,7 @@ func PullImage(imageName string) {
 	io.Copy(os.Stdout, out)
 }
 
-func RunContainer(imageName string, env []string, pull bool) string {
+func RunContainer(imageName string, env []string, pull bool, pipelineId string, operatorId string) string {
 	ctx := context.Background()
 	cli, err := docker.NewEnvClient()
 	if err != nil {
@@ -59,11 +59,11 @@ func RunContainer(imageName string, env []string, pull bool) string {
 		}
 		io.Copy(os.Stdout, out)
 	}
-
+	network := GetEnv("CONTAINER_NETWORK", "bridge")
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image: imageName,
 		Env:   env,
-	}, nil, nil, "")
+	}, &container.HostConfig{NetworkMode: container.NetworkMode(network)}, nil, "fog-"+pipelineId+"-"+operatorId)
 	if err != nil {
 		panic(err)
 	}
