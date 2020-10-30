@@ -38,7 +38,7 @@ func ConnectMQTTBroker() {
 	hostname, _ := os.Hostname()
 
 	server := flag.String("server", "tcp://"+GetEnv("BROKER_HOST", "localhost")+":"+GetEnv("BROKER_PORT", "1883"), "The full url of the MQTT server to connect to ex: tcp://127.0.0.1:1883")
-	topic := flag.String("topic", GetConf().Id, "Topic to subscribe to")
+	topic := flag.String("topic", TopicPrefix+GetConf().Id, "Topic to subscribe to")
 	qos = flag.Int("qos", 0, "The QoS to subscribe to messages at")
 	retained = flag.Bool("retained", false, "Are the messages sent with the retained flag")
 	clientid := flag.String("clientid", hostname+strconv.Itoa(time.Now().Second()), "A clientid for the connection")
@@ -71,7 +71,7 @@ func ConnectMQTTBroker() {
 }
 
 func publishMessage(topic string, message string) {
-	client.Publish(topic, byte(*qos), *retained, message)
+	client.Publish(TopicPrefix+topic, byte(*qos), *retained, message)
 }
 
 func onMessageReceived(client MQTT.Client, message MQTT.Message) {
