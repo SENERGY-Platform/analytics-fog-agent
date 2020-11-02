@@ -25,12 +25,15 @@ import (
 	"github.com/docker/distribution/uuid"
 )
 
-const CONFPATH = "./data/conf.json"
+const ConfigPath = "./data/conf.json"
 
 var CONF Configuration
 
 func InitConf() {
-	if _, err := os.Stat(CONFPATH); err == nil {
+	if _, err := os.Stat("./data/"); os.IsNotExist(err) {
+		_ = os.Mkdir("./data/", 0700)
+	}
+	if _, err := os.Stat(ConfigPath); err == nil {
 		conf := readConf()
 		if conf.Id == "" {
 			WriteConf(Configuration{Id: uuid.Generate().String()})
@@ -38,7 +41,7 @@ func InitConf() {
 
 	} else if os.IsNotExist(err) {
 		fmt.Println("Creating config")
-		f, err := os.Create(CONFPATH)
+		f, err := os.Create(ConfigPath)
 		if err != nil {
 			fmt.Println("error:", err)
 		}
@@ -59,7 +62,7 @@ func InitConf() {
 
 func WriteConf(confNew Configuration) {
 	confJson, _ := json.Marshal(confNew)
-	err := ioutil.WriteFile(CONFPATH, confJson, 0644)
+	err := ioutil.WriteFile(ConfigPath, confJson, 0644)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
@@ -70,7 +73,7 @@ func GetConf() (conf Configuration) {
 }
 
 func readConf() (configuration Configuration) {
-	f, _ := os.Open(CONFPATH)
+	f, _ := os.Open(ConfigPath)
 	defer func() {
 		if err := f.Close(); err != nil {
 			panic(err)
