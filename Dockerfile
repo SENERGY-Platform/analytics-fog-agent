@@ -1,11 +1,18 @@
-FROM golang
-COPY . /go/src/fog_agent
-WORKDIR /go/src/fog_agent
+FROM golang:1.15 AS builder
+
+COPY . /go/src/app
+WORKDIR /go/src/app
+
 ENV GO111MODULE=on
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o fog_agent .
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o app
+
+RUN git log -1 --oneline > version.txt
 
 FROM docker:dind
 WORKDIR /root/
-COPY --from=0 /go/src/fog_agent/fog_agent .
-RUN ls -la
-CMD ./fog_agent
+
+COPY --from=builder /go/src/app/app .
+COPY --from=builder /go/src/app/version.txt .
+
+ENTRYPOINT ["./app"]
