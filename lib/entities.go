@@ -55,5 +55,3 @@ type Mapping struct {
 	Dest   string `json:"dest,omitempty"`
 	Source string `json:"source,omitempty"`
 }
-
-const TopicPrefix = "fog/"
