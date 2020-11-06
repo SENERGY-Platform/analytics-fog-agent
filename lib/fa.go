@@ -36,8 +36,15 @@ func processMessage(message MQTT.Message) {
 	}
 	switch command.Command {
 	case "startOperator":
-		containerId := startOperator(command.Data)
-		command.Data.ContainerId = containerId
+		containerId, err := startOperator(command.Data)
+		if err != nil {
+			command.Data.Response = "Error"
+			command.Data.ResponseMessage = err.Error()
+		} else {
+			command.Data.Response = "OK"
+			command.Data.ResponseMessage = "All good"
+			command.Data.ContainerId = containerId
+		}
 		command.Data.Agent = GetConf()
 		out, err := json.Marshal(command.Data)
 		if err != nil {
@@ -52,14 +59,14 @@ func processMessage(message MQTT.Message) {
 
 }
 
-func startOperator(operator OperatorJob) (containerId string) {
+func startOperator(operator OperatorJob) (containerId string, err error) {
 	inputTopics, err := json.Marshal(operator.InputTopics)
 	if err != nil {
 		panic(err)
 	}
 	config, err := json.Marshal(operator.Config)
 	if err != nil {
-		panic(err)
+		return
 	}
 	env := []string{"INPUT=" + string(inputTopics),
 		"CONFIG=" + string(config),
@@ -71,7 +78,7 @@ func startOperator(operator OperatorJob) (containerId string) {
 		fmt.Println("Invalid config for CONTAINER_PULL_IMAGE")
 		pull = true
 	}
-	containerId = RunContainer(operator.ImageId, env, pull, operator.Config.PipelineId, operator.Config.OperatorId)
+	containerId, err = RunContainer(operator.ImageId, env, pull, operator.Config.PipelineId, operator.Config.OperatorId)
 	return
 }
 
