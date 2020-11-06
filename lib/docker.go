@@ -55,7 +55,12 @@ func RunContainer(imageName string, env []string, pull bool, pipelineId string, 
 	if pull == true {
 		out, err := cli.ImagePull(ctx, imageName, types.ImagePullOptions{})
 		if err != nil {
-			return "", err
+			if err.Error() == "repository name must be canonical" {
+				out, err = cli.ImagePull(ctx, "docker.io/"+imageName, types.ImagePullOptions{})
+			}
+			if err != nil {
+				return "", err
+			}
 		}
 		_, _ = io.Copy(os.Stdout, out)
 	}
