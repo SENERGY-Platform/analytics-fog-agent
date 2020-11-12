@@ -83,7 +83,6 @@ func startOperator(operator OperatorJob) (containerId string, err error) {
 }
 
 func stopOperator(operatorJob OperatorJob) {
-	StopContainer(operatorJob.ContainerId)
 	RemoveContainer(operatorJob.ContainerId)
 }
 
