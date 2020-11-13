@@ -76,7 +76,7 @@ func publishMessage(topic string, message string) {
 
 func onMessageReceived(client MQTT.Client, message MQTT.Message) {
 	fmt.Printf("Received message on topic: %s\nMessage: %s\n", message.Topic(), message.Payload())
-	processMessage(message)
+	go processMessage(message)
 }
 
 func CloseConnection() {
