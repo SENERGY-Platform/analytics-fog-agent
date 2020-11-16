@@ -22,6 +22,8 @@ import (
 	"io"
 	"os"
 
+	"github.com/docker/distribution/uuid"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
@@ -68,7 +70,8 @@ func RunContainer(imageName string, env []string, pull bool, pipelineId string, 
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image: imageName,
 		Env:   env,
-	}, &container.HostConfig{NetworkMode: container.NetworkMode(network)}, nil, "fog-"+pipelineId+"-"+operatorId)
+	}, &container.HostConfig{NetworkMode: container.NetworkMode(network)}, nil,
+		"fog-"+pipelineId+"-"+operatorId+"-"+uuid.Generate().String())
 	if err != nil {
 		return "", err
 	}
