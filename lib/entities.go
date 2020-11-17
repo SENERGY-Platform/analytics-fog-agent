@@ -31,13 +31,14 @@ type ControlCommand struct {
 }
 
 type OperatorJob struct {
-	ImageId         string        `json:"imageId,omitempty"`
-	Agent           Configuration `json:"agent,omitempty"`
-	ContainerId     string        `json:"containerId,omitempty"`
-	InputTopics     []InputTopic  `json:"inputTopics,omitempty"`
-	Config          FogConfig     `json:"config,omitempty"`
-	Response        string        `json:"response,omitempty"`
-	ResponseMessage string        `json:"responseMessage,omitempty"`
+	ImageId         string            `json:"imageId,omitempty"`
+	Agent           Configuration     `json:"agent,omitempty"`
+	ContainerId     string            `json:"containerId,omitempty"`
+	OperatorConfig  map[string]string `json:"operatorConfig,omitempty"`
+	InputTopics     []InputTopic      `json:"inputTopics,omitempty"`
+	Config          FogConfig         `json:"config,omitempty"`
+	Response        string            `json:"response,omitempty"`
+	ResponseMessage string            `json:"responseMessage,omitempty"`
 }
 
 type FogConfig struct {

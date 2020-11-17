@@ -60,6 +60,10 @@ func processMessage(message MQTT.Message) {
 }
 
 func startOperator(operator OperatorJob) (containerId string, err error) {
+	operatorConfig, err := json.Marshal(operator.OperatorConfig)
+	if err != nil {
+		panic(err)
+	}
 	inputTopics, err := json.Marshal(operator.InputTopics)
 	if err != nil {
 		panic(err)
@@ -68,8 +72,10 @@ func startOperator(operator OperatorJob) (containerId string, err error) {
 	if err != nil {
 		return
 	}
-	env := []string{"INPUT=" + string(inputTopics),
+	env := []string{
+		"INPUT=" + string(inputTopics),
 		"CONFIG=" + string(config),
+		"OPERATOR_CONFIG=" + string(operatorConfig),
 		"BROKER_HOST=" + GetEnv("CONTAINER_BROKER_HOST", GetEnv("BROKER_HOST", "localhost")),
 		"BROKER_PORT=" + GetEnv("BROKER_PORT", "1883"),
 	}
