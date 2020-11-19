@@ -25,7 +25,7 @@ import (
 
 func RegisterAgent() {
 	conf, _ := json.Marshal(AgentMessage{Type: "register", Conf: GetConf()})
-	publishMessage(AgentsTopic, string(conf))
+	publishMessage(AgentsTopic, string(conf), 2)
 }
 
 func processMessage(message MQTT.Message) {
@@ -50,7 +50,7 @@ func processMessage(message MQTT.Message) {
 		if err != nil {
 			panic(err)
 		}
-		publishMessage(OperatorsTopic, string(out))
+		publishMessage(OperatorsTopic, string(out), 2)
 	case "stopOperator":
 		stopOperator(command.Data)
 	case "ping":
@@ -97,5 +97,5 @@ func sendPong() {
 	if err != nil {
 		panic(err)
 	}
-	publishMessage(AgentsTopic, string(out))
+	publishMessage(AgentsTopic, string(out), 1)
 }
