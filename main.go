@@ -17,7 +17,7 @@
 package main
 
 import (
-	"fog_agent/lib"
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib"
 	"log"
 	"os"
 	"os/signal"

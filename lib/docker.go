@@ -30,7 +30,7 @@ import (
 
 func PullImage(imageName string) {
 	ctx := context.Background()
-	cli, err := docker.NewEnvClient()
+	cli, err := docker.NewClientWithOpts(docker.FromEnv)
 	if err != nil {
 		panic(err)
 	}
@@ -47,7 +47,7 @@ func PullImage(imageName string) {
 
 func RunContainer(imageName string, env []string, pull bool, pipelineId string, operatorId string) (string, error) {
 	ctx := context.Background()
-	cli, err := docker.NewEnvClient()
+	cli, err := docker.NewClientWithOpts(docker.FromEnv)
 	if err != nil {
 		return "", err
 	}
@@ -68,7 +68,7 @@ func RunContainer(imageName string, env []string, pull bool, pipelineId string, 
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image: imageName,
 		Env:   env,
-	}, &container.HostConfig{NetworkMode: container.NetworkMode(network)}, nil,
+	}, &container.HostConfig{NetworkMode: container.NetworkMode(network)}, nil, nil,
 		"fog-"+pipelineId+"-"+operatorId)
 	if err != nil {
 		return "", err
@@ -82,7 +82,7 @@ func RunContainer(imageName string, env []string, pull bool, pipelineId string, 
 }
 
 func ListAllContainers() {
-	cli, err := docker.NewEnvClient()
+	cli, err := docker.NewClientWithOpts(docker.FromEnv)
 	if err != nil {
 		panic(err)
 	}
@@ -99,7 +99,7 @@ func ListAllContainers() {
 
 func StopAllContainers() {
 	ctx := context.Background()
-	cli, err := docker.NewEnvClient()
+	cli, err := docker.NewClientWithOpts(docker.FromEnv)
 	if err != nil {
 		panic(err)
 	}
@@ -111,7 +111,7 @@ func StopAllContainers() {
 
 	for _, ct := range containers {
 		fmt.Print("Stopping container ", ct.ID[:10], "... ")
-		if err := cli.ContainerStop(ctx, ct.ID, nil); err != nil {
+		if err := cli.ContainerStop(ctx, ct.ID, container.StopOptions{}); err != nil {
 			panic(err)
 		}
 		fmt.Println("Success")
@@ -120,13 +120,12 @@ func StopAllContainers() {
 
 func RemoveAllContainers() {
 	ctx := context.Background()
-	cli, err := docker.NewEnvClient()
+	cli, err := docker.NewClientWithOpts(docker.FromEnv)
 	if err != nil {
 		panic(err)
 	}
 
 	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{
-		Quiet:   false,
 		Size:    false,
 		All:     true,
 		Latest:  false,
@@ -152,7 +151,7 @@ func RemoveAllContainers() {
 
 func StopContainer(id string) {
 	ctx := context.Background()
-	cli, err := docker.NewEnvClient()
+	cli, err := docker.NewClientWithOpts(docker.FromEnv)
 	if err != nil {
 		panic(err)
 	}
@@ -165,7 +164,7 @@ func StopContainer(id string) {
 	for _, ct := range containers {
 		if id == ct.ID {
 			fmt.Print("Stopping container ", ct.ID[:10], "... ")
-			if err := cli.ContainerStop(ctx, ct.ID, nil); err != nil {
+			if err := cli.ContainerStop(ctx, ct.ID, container.StopOptions{}); err != nil {
 				panic(err)
 			}
 			fmt.Println("Success")
@@ -175,13 +174,12 @@ func StopContainer(id string) {
 
 func RemoveContainer(id string) {
 	ctx := context.Background()
-	cli, err := docker.NewEnvClient()
+	cli, err := docker.NewClientWithOpts(docker.FromEnv)
 	if err != nil {
 		panic(err)
 	}
 
 	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{
-		Quiet:   false,
 		Size:    false,
 		All:     true,
 		Latest:  false,
