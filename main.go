@@ -17,11 +17,16 @@
 package main
 
 import (
-	"github.com/SENERGY-Platform/analytics-fog-agent/lib"
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/agent"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/conf"
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/config"
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/container_manager"
+	srv_base "github.com/SENERGY-Platform/go-service-base/srv-base"
 
 	"github.com/joho/godotenv"
 )
@@ -31,11 +36,31 @@ func main() {
 	if err != nil {
 		log.Print("Error loading .env file")
 	}
-	lib.InitConf()
+
+	config, err := config.NewConfig("")
+	if err != nil {
+		log.Print("Error loading config")
+	}
+	log.Println("config: %s", srv_base.ToJsonStr(config))
+
+	conf.InitConf()
+
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	lib.ConnectMQTTBroker()
-	lib.RegisterAgent()
-	defer lib.CloseConnection()
+
+	mqttClient := agent.NewMQTTClient(config.Broker)
+
+	containerManager, err := container_manager.NewManager(config)
+	if err != nil {
+		log.Print("Container Manager Type not found")
+	}
+
+	agent := agent.NewAgent(containerManager, mqttClient)
+	mqttClient.ConnectMQTTBroker(agent)
+
+	// Register after connection
+	agent.Register()
+
+	defer mqttClient.CloseConnection()
 	<-c
 }

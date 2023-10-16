@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package lib
+package entities
 
 type AgentMessage struct {
 	Type string        `json:"type,omitempty"`

@@ -14,32 +14,47 @@
  * limitations under the License.
  */
 
-package lib
+package agent
 
 import (
 	"crypto/tls"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"time"
 
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/conf"
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/config"
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/constants"
+
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
 
-var client MQTT.Client
-var retained *bool
+type MQTTClient struct {
+	Client   MQTT.Client
+	Retained *bool
+	Broker   config.BrokerConfig
+}
 
-func ConnectMQTTBroker() {
-	//MQTT.DEBUG = log.New(os.Stdout, "", 0)
-	//MQTT.ERROR = log.New(os.Stdout, "", 0)
+func NewMQTTClient(brokerConfig config.BrokerConfig) *MQTTClient {
+	return &MQTTClient{
+		Broker: brokerConfig,
+	}
+}
+
+func (client *MQTTClient) ConnectMQTTBroker(agent *Agent) {
+	MQTT.DEBUG = log.New(os.Stdout, "", 0)
 
 	hostname, _ := os.Hostname()
 
-	server := flag.String("server", "tcp://"+GetEnv("BROKER_HOST", "localhost")+":"+GetEnv("BROKER_PORT", "1883"), "The full url of the MQTT server to connect to ex: tcp://127.0.0.1:1883")
-	topic := flag.String("topic", TopicPrefix+GetConf().Id, "Topic to subscribe to")
+	server := flag.String("server", "tcp://"+client.Broker.Host+":"+client.Broker.Port, "The full url of the MQTT server to connect to ex: tcp://127.0.0.1:1883")
+	fmt.Println("Try to connect to: ", *server)
+	topic := flag.String("topic", constants.TopicPrefix+conf.GetConf().Id, "Topic to subscribe to")
 	qos := *flag.Int("qos", 2, "The QoS to subscribe to messages at")
-	retained = flag.Bool("retained", false, "Are the messages sent with the retained flag")
+	client.Retained = flag.Bool("retained", false, "Are the messages sent with the retained flag")
+	fmt.Println(client.Retained)
 	clientId := flag.String("clientid", hostname+strconv.Itoa(time.Now().Second()), "A clientid for the connection")
 	username := flag.String("username", "", "A username to authenticate to the MQTT server")
 	password := flag.String("password", "", "Password to match username")
@@ -56,29 +71,24 @@ func ConnectMQTTBroker() {
 	connOpts.SetTLSConfig(tlsConfig)
 
 	connOpts.OnConnect = func(c MQTT.Client) {
-		if token := c.Subscribe(*topic, byte(qos), onMessageReceived); token.Wait() && token.Error() != nil {
+		if token := c.Subscribe(*topic, byte(qos), agent.onMessageReceived); token.Wait() && token.Error() != nil {
 			panic(token.Error())
 		}
 	}
 
-	client = MQTT.NewClient(connOpts)
-	if token := client.Connect(); token.Wait() && token.Error() != nil {
+	client.Client = MQTT.NewClient(connOpts)
+	if token := client.Client.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	} else {
 		fmt.Printf("Connected to %s\n", *server)
 	}
 }
 
-func publishMessage(topic string, message string, qos int) {
-	client.Publish(topic, byte(qos), *retained, message)
-}
-
-func onMessageReceived(client MQTT.Client, message MQTT.Message) {
-	fmt.Printf("Received message on topic: %s\nMessage: %s\n", message.Topic(), message.Payload())
-	go processMessage(message)
-}
-
-func CloseConnection() {
-	client.Disconnect(250)
+func (client *MQTTClient) CloseConnection() {
+	client.Client.Disconnect(250)
 	time.Sleep(1 * time.Second)
+}
+
+func (client *MQTTClient) Publish(topic string, message string, qos int) {
+	client.Client.Publish(topic, byte(qos), *client.Retained, message)
 }

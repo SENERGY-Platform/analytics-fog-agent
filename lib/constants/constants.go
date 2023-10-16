@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 InfAI (CC SES)
+ * Copyright 2020 InfAI (CC SES)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package lib
+package constants
 
-import (
-	"os"
-)
-
-func GetEnv(key, fallback string) string {
-	value := os.Getenv(key)
-	if len(value) == 0 {
-		return fallback
-	}
-	return value
-}
+const TopicPrefix = "fog/"
+const AgentsTopic = TopicPrefix + "agents"
+const OperatorsTopic = TopicPrefix + "operators"
+const DockerManager = "docker"
+const MGWManager = "mgw"

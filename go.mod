@@ -1,6 +1,7 @@
 module github.com/SENERGY-Platform/analytics-fog-agent
 
 require (
+	github.com/SENERGY-Platform/go-service-base v0.13.0
 	github.com/docker/distribution v2.8.3+incompatible
 	github.com/docker/docker v24.0.6+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.4.3
@@ -20,6 +21,8 @@ require (
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/stretchr/testify v1.6.1 // indirect
+	github.com/y-du/go-env-loader v0.5.1 // indirect
+	github.com/y-du/go-log-level v0.2.3 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/net v0.15.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect

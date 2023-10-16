@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package lib
+package conf
 
 import (
 	"encoding/json"
@@ -22,12 +22,13 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/entities"
 	"github.com/docker/distribution/uuid"
 )
 
 const ConfigPath = "./data/conf.json"
 
-var CONF Configuration
+var CONF entities.Configuration
 
 func InitConf() {
 	if _, err := os.Stat("./data/"); os.IsNotExist(err) {
@@ -36,7 +37,7 @@ func InitConf() {
 	if _, err := os.Stat(ConfigPath); err == nil {
 		conf := readConf()
 		if conf.Id == "" {
-			WriteConf(Configuration{Id: uuid.Generate().String()})
+			WriteConf(entities.Configuration{Id: uuid.Generate().String()})
 		}
 
 	} else if os.IsNotExist(err) {
@@ -50,7 +51,7 @@ func InitConf() {
 				panic(err)
 			}
 		}()
-		WriteConf(Configuration{Id: uuid.Generate().String()})
+		WriteConf(entities.Configuration{Id: uuid.Generate().String()})
 
 	} else {
 		// Schrodinger: file may or may not exist. See err for details.
@@ -60,7 +61,7 @@ func InitConf() {
 	CONF = readConf()
 }
 
-func WriteConf(confNew Configuration) {
+func WriteConf(confNew entities.Configuration) {
 	confJson, _ := json.Marshal(confNew)
 	err := ioutil.WriteFile(ConfigPath, confJson, 0644)
 	if err != nil {
@@ -68,11 +69,11 @@ func WriteConf(confNew Configuration) {
 	}
 }
 
-func GetConf() (conf Configuration) {
+func GetConf() (conf entities.Configuration) {
 	return CONF
 }
 
-func readConf() (configuration Configuration) {
+func readConf() (configuration entities.Configuration) {
 	f, _ := os.Open(ConfigPath)
 	defer func() {
 		if err := f.Close(); err != nil {
