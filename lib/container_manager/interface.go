@@ -2,14 +2,15 @@ package container_manager
 
 import (
 	"errors"
+
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/config"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/constants"
-	"github.com/SENERGY-Platform/analytics-fog-agent/lib/entities"
+	operatorEntities "github.com/SENERGY-Platform/analytics-fog-lib/lib/operator"
 )
 
 type Manager interface {
-	StartOperator(operatorJob entities.OperatorJob) (containerId string, err error)
-	StopOperator(operatorJob entities.OperatorJob) (err error)
+	StartOperator(operatorJob operatorEntities.StartOperatorMessage) (containerId string, err error)
+	StopOperator(operatorID string) (err error)
 }
 
 func NewManager(config *config.Config) (Manager, error) {

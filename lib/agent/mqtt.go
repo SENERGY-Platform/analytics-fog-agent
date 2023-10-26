@@ -19,13 +19,14 @@ package agent
 import (
 	"crypto/tls"
 	"flag"
-	"fmt"
-	"log"
+	//"log"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/conf"
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/logging"
+
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/config"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/constants"
 
@@ -45,16 +46,15 @@ func NewMQTTClient(brokerConfig config.BrokerConfig) *MQTTClient {
 }
 
 func (client *MQTTClient) ConnectMQTTBroker(agent *Agent) {
-	MQTT.DEBUG = log.New(os.Stdout, "", 0)
+	//MQTT.DEBUG = log.New(os.Stdout, "", 0)
 
 	hostname, _ := os.Hostname()
 
 	server := flag.String("server", "tcp://"+client.Broker.Host+":"+client.Broker.Port, "The full url of the MQTT server to connect to ex: tcp://127.0.0.1:1883")
-	fmt.Println("Try to connect to: ", *server)
+	logging.Logger.Debug("Try to connect to: ", *server)
 	topic := flag.String("topic", constants.TopicPrefix+conf.GetConf().Id, "Topic to subscribe to")
 	qos := *flag.Int("qos", 2, "The QoS to subscribe to messages at")
 	client.Retained = flag.Bool("retained", false, "Are the messages sent with the retained flag")
-	fmt.Println(client.Retained)
 	clientId := flag.String("clientid", hostname+strconv.Itoa(time.Now().Second()), "A clientid for the connection")
 	username := flag.String("username", "", "A username to authenticate to the MQTT server")
 	password := flag.String("password", "", "Password to match username")
@@ -80,7 +80,7 @@ func (client *MQTTClient) ConnectMQTTBroker(agent *Agent) {
 	if token := client.Client.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	} else {
-		fmt.Printf("Connected to %s\n", *server)
+		logging.Logger.Debugf("Connected to %s\n", *server)
 	}
 }
 

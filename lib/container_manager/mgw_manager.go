@@ -2,7 +2,7 @@ package container_manager
 
 import (
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/config"
-	"github.com/SENERGY-Platform/analytics-fog-agent/lib/entities"
+	operatorEntities "github.com/SENERGY-Platform/analytics-fog-lib/lib/operator"
 )
 
 type MGWManager struct {
@@ -22,10 +22,10 @@ func NewMGWManager(brokerHost string, brokerPort string, moduleManagerHost strin
 		},
 	}
 }
-func (mangager *MGWManager) StartOperator(operatorJob entities.OperatorJob) (containerId string, err error) {
-	return "", nil
+func (mangager *MGWManager) StartOperator(operatorJob operatorEntities.StartOperatorMessage) (containerId string, err error) {
+	return "id", nil
 }
 
-func (mangager *MGWManager) StopOperator(operatorJob entities.OperatorJob) (err error) {
+func (mangager *MGWManager) StopOperator(operatorId string) (err error) {
 	return nil
 }

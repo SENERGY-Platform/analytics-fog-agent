@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/config"
-	"github.com/SENERGY-Platform/analytics-fog-agent/lib/entities"
+	operatorEntities "github.com/SENERGY-Platform/analytics-fog-lib/lib/operator"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
@@ -32,7 +32,7 @@ func NewDockerManager(brokerHost string, brokerPort string, containerPullImage b
 	}
 }
 
-func (manager *DockerManager) StartOperator(operator entities.OperatorJob) (containerId string, err error) {
+func (manager *DockerManager) StartOperator(operator operatorEntities.StartOperatorMessage) (containerId string, err error) {
 	operatorConfig, err := json.Marshal(operator.OperatorConfig)
 	if err != nil {
 		panic(err)
@@ -57,8 +57,8 @@ func (manager *DockerManager) StartOperator(operator entities.OperatorJob) (cont
 	return
 }
 
-func (manager *DockerManager) StopOperator(operatorJob entities.OperatorJob) (err error) {
-	return manager.RemoveContainer(operatorJob.ContainerId)
+func (manager *DockerManager) StopOperator(operatorId string) (err error) {
+	return manager.RemoveContainer(operatorId)
 }
 
 func (manager *DockerManager) PullImage(imageName string) {

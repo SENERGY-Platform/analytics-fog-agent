@@ -17,21 +17,30 @@
 package main
 
 import (
-	"github.com/SENERGY-Platform/analytics-fog-agent/lib/agent"
+	"errors"
+	"fmt"
 	"log"
 	"os"
-	"os/signal"
 	"syscall"
+
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/agent"
 
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/conf"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/config"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/container_manager"
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/logging"
+
 	srv_base "github.com/SENERGY-Platform/go-service-base/srv-base"
 
 	"github.com/joho/godotenv"
 )
 
 func main() {
+	ec := 0
+	defer func() {
+		os.Exit(ec)
+	}()
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Print("Error loading .env file")
@@ -41,26 +50,46 @@ func main() {
 	if err != nil {
 		log.Print("Error loading config")
 	}
-	log.Println("config: %s", srv_base.ToJsonStr(config))
 
-	conf.InitConf()
+	logFile, err := logging.InitLogger(config.Logger)
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, err)
+		var logFileError *srv_base.LogFileError
+		if errors.As(err, &logFileError) {
+			ec = 1
+			return
+		}
+	}
+	if logFile != nil {
+		defer logFile.Close()
+	}
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	logging.Logger.Debugf("config: %s", srv_base.ToJsonStr(config))
+
+	watchdog := srv_base.NewWatchdog(logging.Logger, syscall.SIGINT, syscall.SIGTERM)
+
+	conf.InitConf(config.DataDir)
 
 	mqttClient := agent.NewMQTTClient(config.Broker)
 
 	containerManager, err := container_manager.NewManager(config)
 	if err != nil {
-		log.Print("Container Manager Type not found")
+		logging.Logger.Debug("Container Manager Type not found")
 	}
 
 	agent := agent.NewAgent(containerManager, mqttClient)
 	mqttClient.ConnectMQTTBroker(agent)
 
+	watchdog.RegisterStopFunc(func() error {
+		mqttClient.CloseConnection()
+		return nil
+	})
+
 	// Register after connection
 	agent.Register()
 
-	defer mqttClient.CloseConnection()
-	<-c
+	watchdog.Start()
+
+	ec = watchdog.Join()
+
 }

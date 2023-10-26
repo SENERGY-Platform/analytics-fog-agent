@@ -21,28 +21,35 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
-	"github.com/SENERGY-Platform/analytics-fog-agent/lib/entities"
+	agentEntities "github.com/SENERGY-Platform/analytics-fog-lib/lib/agent"
+
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/constants"
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/logging"
+
 	"github.com/docker/distribution/uuid"
 )
 
-const ConfigPath = "./data/conf.json"
+var CONF agentEntities.Configuration
 
-var CONF entities.Configuration
-
-func InitConf() {
-	if _, err := os.Stat("./data/"); os.IsNotExist(err) {
-		_ = os.Mkdir("./data/", 0700)
+func InitConf(dataDir string) {
+	configPath := filepath.Join(dataDir, constants.ConfFileName)
+	if _, err := os.Stat(dataDir); os.IsNotExist(err) {
+		_ = os.Mkdir(dataDir, 0700)
 	}
-	if _, err := os.Stat(ConfigPath); err == nil {
-		conf := readConf()
+
+	if _, err := os.Stat(configPath); err == nil {
+		logging.Logger.Debug("Read agent config from ", configPath)
+
+		conf := readConf(dataDir)
 		if conf.Id == "" {
-			WriteConf(entities.Configuration{Id: uuid.Generate().String()})
+			WriteConf(dataDir, agentEntities.Configuration{Id: uuid.Generate().String()})
 		}
 
 	} else if os.IsNotExist(err) {
-		fmt.Println("Creating config")
-		f, err := os.Create(ConfigPath)
+		logging.Logger.Debug("Creating agent config at ", configPath)
+		f, err := os.Create(configPath)
 		if err != nil {
 			fmt.Println("error:", err)
 		}
@@ -51,30 +58,34 @@ func InitConf() {
 				panic(err)
 			}
 		}()
-		WriteConf(entities.Configuration{Id: uuid.Generate().String()})
+		WriteConf(dataDir, agentEntities.Configuration{Id: uuid.Generate().String()})
 
 	} else {
 		// Schrodinger: file may or may not exist. See err for details.
 
 		// Therefore, do *NOT* use !os.IsNotExist(err) to test for file existence
 	}
-	CONF = readConf()
+	CONF = readConf(dataDir)
 }
 
-func WriteConf(confNew entities.Configuration) {
+func WriteConf(dataDir string, confNew agentEntities.Configuration) {
+	configPath := filepath.Join(dataDir, constants.ConfFileName)
+
 	confJson, _ := json.Marshal(confNew)
-	err := ioutil.WriteFile(ConfigPath, confJson, 0644)
+	err := ioutil.WriteFile(configPath, confJson, 0644)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
 }
 
-func GetConf() (conf entities.Configuration) {
+func GetConf() (conf agentEntities.Configuration) {
 	return CONF
 }
 
-func readConf() (configuration entities.Configuration) {
-	f, _ := os.Open(ConfigPath)
+func readConf(dataDir string) (configuration agentEntities.Configuration) {
+	configPath := filepath.Join(dataDir, constants.ConfFileName)
+
+	f, _ := os.Open(configPath)
 	defer func() {
 		if err := f.Close(); err != nil {
 			panic(err)
