@@ -26,9 +26,12 @@ import (
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/agent"
 
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/conf"
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/relay"
+
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/config"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/container_manager"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/logging"
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/mqtt"
 
 	srv_base "github.com/SENERGY-Platform/go-service-base/srv-base"
 
@@ -70,23 +73,24 @@ func main() {
 
 	conf.InitConf(config.DataDir)
 
-	mqttClient := agent.NewMQTTClient(config.Broker)
+	mqttClient := mqtt.NewMQTTClient(config.Broker)
 
 	containerManager, err := container_manager.NewManager(config)
 	if err != nil {
 		logging.Logger.Debug("Container Manager Type not found")
 	}
 
-	agent := agent.NewAgent(containerManager, mqttClient)
-	mqttClient.ConnectMQTTBroker(agent)
+	agent := agent.NewAgent(containerManager, mqttClient, conf.GetConf())
+	relayController := relay.NewRelayController(agent)
+
+	mqttClient.ConnectMQTTBroker(relayController)
+
+	go agent.Register()
 
 	watchdog.RegisterStopFunc(func() error {
 		mqttClient.CloseConnection()
 		return nil
 	})
-
-	// Register after connection
-	agent.Register()
 
 	watchdog.Start()
 

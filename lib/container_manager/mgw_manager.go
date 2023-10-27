@@ -23,6 +23,8 @@ func NewMGWManager(brokerHost string, brokerPort string, moduleManagerHost strin
 	}
 }
 func (mangager *MGWManager) StartOperator(operatorJob operatorEntities.StartOperatorMessage) (containerId string, err error) {
+
+	//
 	return "id", nil
 }
 

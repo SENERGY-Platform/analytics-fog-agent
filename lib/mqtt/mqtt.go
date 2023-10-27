@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package agent
+package mqtt
 
 import (
 	"crypto/tls"
 	"flag"
+
 	//"log"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/conf"
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/constants"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/logging"
 
+	"github.com/SENERGY-Platform/analytics-fog-lib/lib/topic"
+
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/config"
-	"github.com/SENERGY-Platform/analytics-fog-agent/lib/constants"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
@@ -45,15 +48,18 @@ func NewMQTTClient(brokerConfig config.BrokerConfig) *MQTTClient {
 	}
 }
 
-func (client *MQTTClient) ConnectMQTTBroker(agent *Agent) {
+func (client *MQTTClient) ConnectMQTTBroker(relay RelayController) {
 	//MQTT.DEBUG = log.New(os.Stdout, "", 0)
 
 	hostname, _ := os.Hostname()
 
 	server := flag.String("server", "tcp://"+client.Broker.Host+":"+client.Broker.Port, "The full url of the MQTT server to connect to ex: tcp://127.0.0.1:1883")
 	logging.Logger.Debug("Try to connect to: ", *server)
-	topic := flag.String("topic", constants.TopicPrefix+conf.GetConf().Id, "Topic to subscribe to")
-	qos := *flag.Int("qos", 2, "The QoS to subscribe to messages at")
+	topics := map[string]byte{
+		topic.TopicPrefix + conf.GetConf().Id: byte(2),
+		constants.MasterTopic:                 byte(2),
+	}
+
 	client.Retained = flag.Bool("retained", false, "Are the messages sent with the retained flag")
 	clientId := flag.String("clientid", hostname+strconv.Itoa(time.Now().Second()), "A clientid for the connection")
 	username := flag.String("username", "", "A username to authenticate to the MQTT server")
@@ -71,7 +77,7 @@ func (client *MQTTClient) ConnectMQTTBroker(agent *Agent) {
 	connOpts.SetTLSConfig(tlsConfig)
 
 	connOpts.OnConnect = func(c MQTT.Client) {
-		if token := c.Subscribe(*topic, byte(qos), agent.onMessageReceived); token.Wait() && token.Error() != nil {
+		if token := c.SubscribeMultiple(topics, relay.OnMessageReceived); token.Wait() && token.Error() != nil {
 			panic(token.Error())
 		}
 	}

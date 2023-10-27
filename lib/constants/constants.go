@@ -16,9 +16,15 @@
 
 package constants
 
-const TopicPrefix = "fog/"
-const AgentsTopic = TopicPrefix + "agents"
-const OperatorsTopic = TopicPrefix + "operators"
+import (
+	"github.com/SENERGY-Platform/analytics-fog-lib/lib/agent"
+	"github.com/SENERGY-Platform/analytics-fog-lib/lib/master"
+	"github.com/SENERGY-Platform/analytics-fog-lib/lib/operator"
+)
+
 const DockerManager = "docker"
 const MGWManager = "mgw"
 const ConfFileName = "conf.json"
+const AgentsTopic = agent.AgentsTopic
+const OperatorsTopic = operator.OperatorsTopic
+const MasterTopic = master.MasterTopic
