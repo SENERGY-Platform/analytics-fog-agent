@@ -9,7 +9,7 @@ RUN CGO_ENABLED=0 go build -o app
 
 RUN git log -1 --oneline > version.txt
 
-FROM docker:dind
+FROM alpine:latest
 WORKDIR /root/
 
 COPY --from=builder /go/src/app/app .
