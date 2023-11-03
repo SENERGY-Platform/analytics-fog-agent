@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/SENERGY-Platform/analytics-fog-agent/lib/config"
+	mqtt "github.com/SENERGY-Platform/analytics-fog-lib/lib/mqtt"
 	operatorEntities "github.com/SENERGY-Platform/analytics-fog-lib/lib/operator"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -16,14 +16,14 @@ import (
 )
 
 type DockerManager struct {
-	Broker             config.BrokerConfig
+	Broker             mqtt.BrokerConfig
 	ContainerPullImage bool
 	ContainerNetwork   string
 }
 
 func NewDockerManager(brokerHost string, brokerPort string, containerPullImage bool, containerNetwork string) *DockerManager {
 	return &DockerManager{
-		Broker: config.BrokerConfig{
+		Broker: mqtt.BrokerConfig{
 			Host: brokerHost,
 			Port: brokerPort,
 		},

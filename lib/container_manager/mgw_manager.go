@@ -2,17 +2,18 @@ package container_manager
 
 import (
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/config"
+	mqtt "github.com/SENERGY-Platform/analytics-fog-lib/lib/mqtt"
 	operatorEntities "github.com/SENERGY-Platform/analytics-fog-lib/lib/operator"
 )
 
 type MGWManager struct {
 	ModuleManager config.ModuleManagerConfig
-	Broker        config.BrokerConfig
+	Broker        mqtt.BrokerConfig
 }
 
 func NewMGWManager(brokerHost string, brokerPort string, moduleManagerHost string, moduleManagerPort string) *MGWManager {
 	return &MGWManager{
-		Broker: config.BrokerConfig{
+		Broker: mqtt.BrokerConfig{
 			Host: brokerHost,
 			Port: brokerPort,
 		},

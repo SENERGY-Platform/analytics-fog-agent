@@ -23,9 +23,9 @@ import (
 
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/constants"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/container_manager"
-	"github.com/SENERGY-Platform/analytics-fog-agent/lib/mqtt"
 	agentEntities "github.com/SENERGY-Platform/analytics-fog-lib/lib/agent"
 	controlEntities "github.com/SENERGY-Platform/analytics-fog-lib/lib/control"
+	"github.com/SENERGY-Platform/analytics-fog-lib/lib/mqtt"
 )
 
 type Agent struct {

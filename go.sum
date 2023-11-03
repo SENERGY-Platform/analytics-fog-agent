@@ -4,6 +4,8 @@ github.com/Microsoft/go-winio v0.6.1 h1:9/kr64B9VUZrLm5YYwbGtUJnMgqWVOdUAXu6Migc
 github.com/Microsoft/go-winio v0.6.1/go.mod h1:LRdKpFKfdobln8UmuiYcKPot9D2v6svN5+sAH+4kjUM=
 github.com/SENERGY-Platform/analytics-fog-lib v0.0.0-20231026082233-cc7c47d50a08 h1:aWiz9WKS54HWtZdc8SXdymJIU+GnFjhZDFZnDzpoNYk=
 github.com/SENERGY-Platform/analytics-fog-lib v0.0.0-20231026082233-cc7c47d50a08/go.mod h1:WVm6fWbrcAKJ2V+rUXlKQNnVp8bd+11AYJxSlxA6F+Q=
+github.com/SENERGY-Platform/analytics-fog-lib v1.0.0 h1:UPu2NRW92pMnnEutdElohEwcK8sKcCsQaW/hRcLAyrg=
+github.com/SENERGY-Platform/analytics-fog-lib v1.0.0/go.mod h1:WVm6fWbrcAKJ2V+rUXlKQNnVp8bd+11AYJxSlxA6F+Q=
 github.com/SENERGY-Platform/go-service-base v0.13.0 h1:1ytMAd84TO6+gvffjITShTOPStJiP7rSly9lG09fzxU=
 github.com/SENERGY-Platform/go-service-base v0.13.0/go.mod h1:NyMDXzkC/5oRzaMZ1wbFlXTnLoyo3CXM8q1eSloMuBo=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=

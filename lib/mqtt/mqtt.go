@@ -2,20 +2,21 @@ package mqtt
 
 import (
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/conf"
-	"github.com/SENERGY-Platform/analytics-fog-agent/lib/config"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/constants"
+	"github.com/SENERGY-Platform/analytics-fog-lib/lib/agent"
 	"github.com/SENERGY-Platform/analytics-fog-lib/lib/mqtt"
-	"github.com/SENERGY-Platform/analytics-fog-lib/lib/topic"
+	log_level "github.com/y-du/go-log-level"
 )
 
-func NewMQTTClient(brokerConfig config.BrokerConfig) *mqtt.MQTTClient {
+func NewMQTTClient(brokerConfig mqtt.BrokerConfig, logger *log_level.Logger) *mqtt.MQTTClient {
 	topics := mqtt.TopicConfig{
-		topic.TopicPrefix + conf.GetConf().Id: byte(2),
-		constants.MasterTopic:                 byte(2),
+		agent.AgentsTopic + "/" + conf.GetConf().Id: byte(2),
+		constants.MasterTopic:                       byte(2),
 	}
 
 	return &mqtt.MQTTClient{
 		Broker:      brokerConfig,
 		TopicConfig: topics,
+		Logger:      logger,
 	}
 }

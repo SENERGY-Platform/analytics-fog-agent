@@ -21,7 +21,7 @@ import (
 
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/agent"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/constants"
-	"github.com/SENERGY-Platform/analytics-fog-lib/lib/topic"
+	agentLib "github.com/SENERGY-Platform/analytics-fog-lib/lib/agent"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
@@ -40,7 +40,7 @@ func (relay *RelayController) ProcessMessage(message MQTT.Message) {
 	switch message.Topic() {
 	case constants.MasterTopic:
 		relay.processMasterMessages(message.Payload())
-	case topic.TopicPrefix + relay.Agent.Conf.Id:
+	case agentLib.AgentsTopic + "/" + relay.Agent.Conf.Id:
 		relay.processComandForAgent(message.Payload())
 	}
 }

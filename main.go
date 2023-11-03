@@ -46,7 +46,7 @@ func main() {
 
 	err := godotenv.Load()
 	if err != nil {
-		log.Print("Error loading .env file")
+		log.Print("Cant load .env file")
 	}
 
 	config, err := config.NewConfig("")
@@ -73,7 +73,7 @@ func main() {
 
 	conf.InitConf(config.DataDir)
 
-	mqttClient := mqtt.NewMQTTClient(config.Broker)
+	mqttClient := mqtt.NewMQTTClient(config.Broker, logging.Logger)
 
 	containerManager, err := container_manager.NewManager(config)
 	if err != nil {
