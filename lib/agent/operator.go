@@ -28,13 +28,14 @@ func (agent *Agent) StopOperator(command operatorEntities.StopOperatorControlCom
 		panic(err)
 	}
 
-	agent.PublishMessage(constants.OperatorsTopic, string(out), 2)
+	agent.PublishMessage(constants.OperatorsControlResponseTopic, string(out), 2)
 }
 
 func (agent *Agent) StartOperator(command operatorEntities.StartOperatorControlCommand) {
 	containerId, err := agent.ContainerManager.StartOperator(command.Operator)
 	var responseMessage []byte
 	if err != nil {
+		// TODO add logging
 		response := operatorEntities.OperatorAgentResponse{}
 		response.Response = "Error"
 		response.ResponseMessage = err.Error()
@@ -57,5 +58,5 @@ func (agent *Agent) StartOperator(command operatorEntities.StartOperatorControlC
 		}
 	}
 
-	agent.PublishMessage(constants.OperatorsTopic, string(responseMessage), 2)
+	agent.PublishMessage(constants.OperatorsControlResponseTopic, string(responseMessage), 2)
 }

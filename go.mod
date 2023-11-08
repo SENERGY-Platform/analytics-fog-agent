@@ -1,6 +1,6 @@
 module github.com/SENERGY-Platform/analytics-fog-agent
 
-//replace github.com/SENERGY-Platform/analytics-fog-lib => ../analytics-fog-lib
+replace github.com/SENERGY-Platform/analytics-fog-lib => ../analytics-fog-lib
 
 require (
 	github.com/SENERGY-Platform/go-service-base v0.13.0

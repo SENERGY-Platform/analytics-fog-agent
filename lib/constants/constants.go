@@ -26,5 +26,5 @@ const DockerManager = "docker"
 const MGWManager = "mgw"
 const ConfFileName = "conf.json"
 const AgentsTopic = agent.AgentsTopic
-const OperatorsTopic = operator.OperatorsTopic
+const OperatorsControlResponseTopic = operator.OperatorsControlResponseTopic
 const MasterTopic = master.MasterTopic

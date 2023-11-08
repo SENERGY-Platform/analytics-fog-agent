@@ -83,7 +83,7 @@ func main() {
 	agent := agent.NewAgent(containerManager, mqttClient, conf.GetConf())
 	relayController := relay.NewRelayController(agent)
 
-	mqttClient.ConnectMQTTBroker(relayController)
+	mqttClient.ConnectMQTTBroker(relayController, nil, nil)
 
 	go agent.Register()
 
