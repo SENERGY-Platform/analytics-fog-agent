@@ -32,6 +32,8 @@ import (
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/container_manager"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/logging"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/mqtt"
+	mqttLib "github.com/SENERGY-Platform/analytics-fog-lib/lib/mqtt"
+
 
 	srv_base "github.com/SENERGY-Platform/go-service-base/srv-base"
 
@@ -73,7 +75,8 @@ func main() {
 
 	conf.InitConf(config.DataDir)
 
-	mqttClient := mqtt.NewMQTTClient(config.Broker, logging.Logger)
+	mqttConfig := mqttLib.BrokerConfig(config.Broker)
+	mqttClient := mqtt.NewMQTTClient(mqttConfig, logging.Logger)
 
 	containerManager, err := container_manager.NewManager(config)
 	if err != nil {
@@ -82,15 +85,18 @@ func main() {
 
 	agent := agent.NewAgent(containerManager, mqttClient, conf.GetConf())
 	relayController := relay.NewRelayController(agent)
+	mqttClient.SetRelayController(relayController)
 
-	mqttClient.ConnectMQTTBroker(relayController, nil, nil)
-
+	mqttClient.ConnectMQTTBroker(nil, nil)
+	
 	go agent.Register()
 
 	watchdog.RegisterStopFunc(func() error {
 		mqttClient.CloseConnection()
 		return nil
 	})
+
+	logging.Logger.Info("Agent is ready")
 
 	watchdog.Start()
 

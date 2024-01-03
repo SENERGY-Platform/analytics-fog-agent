@@ -19,12 +19,10 @@ package constants
 import (
 	"github.com/SENERGY-Platform/analytics-fog-lib/lib/agent"
 	"github.com/SENERGY-Platform/analytics-fog-lib/lib/master"
-	"github.com/SENERGY-Platform/analytics-fog-lib/lib/operator"
 )
 
 const DockerManager = "docker"
 const MGWManager = "mgw"
 const ConfFileName = "conf.json"
 const AgentsTopic = agent.AgentsTopic
-const OperatorsControlResponseTopic = operator.OperatorsControlResponseTopic
 const MasterTopic = master.MasterTopic

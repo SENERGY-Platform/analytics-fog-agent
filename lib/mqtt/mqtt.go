@@ -6,11 +6,15 @@ import (
 	"github.com/SENERGY-Platform/analytics-fog-lib/lib/agent"
 	"github.com/SENERGY-Platform/analytics-fog-lib/lib/mqtt"
 	log_level "github.com/y-du/go-log-level"
+
 )
 
 func NewMQTTClient(brokerConfig mqtt.BrokerConfig, logger *log_level.Logger) *mqtt.MQTTClient {
+	agentID := conf.GetConf().Id
 	topics := mqtt.TopicConfig{
-		agent.AgentsTopic + "/" + conf.GetConf().Id: byte(2),
+		agent.AgentsTopic + "/" + agentID: byte(2),
+		agent.GetStartOperatorAgentTopic(agentID): byte(2),
+		agent.GetStopOperatorAgentTopic(agentID): byte(2),
 		constants.MasterTopic:                       byte(2),
 	}
 

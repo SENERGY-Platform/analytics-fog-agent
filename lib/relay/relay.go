@@ -37,11 +37,16 @@ func NewRelayController(agent *agent.Agent) *RelayController {
 }
 
 func (relay *RelayController) ProcessMessage(message MQTT.Message) {
+	agentID := relay.Agent.Conf.Id
 	switch message.Topic() {
 	case constants.MasterTopic:
 		relay.processMasterMessages(message.Payload())
-	case agentLib.AgentsTopic + "/" + relay.Agent.Conf.Id:
+	case agentLib.AgentsTopic + "/" + agentID:
 		relay.processComandForAgent(message.Payload())
+	case agentLib.GetStartOperatorAgentTopic(agentID):
+		relay.processStartOperatorCommand(message.Payload())
+	case agentLib.GetStopOperatorAgentTopic(agentID):
+		relay.processStopOperatorCommand(message.Payload())
 	}
 }
 

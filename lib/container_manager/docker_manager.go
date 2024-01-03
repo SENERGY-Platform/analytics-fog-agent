@@ -3,6 +3,7 @@ package container_manager
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -24,7 +25,7 @@ type DockerManager struct {
 func NewDockerManager(brokerHost string, brokerPort string, containerPullImage bool, containerNetwork string) *DockerManager {
 	return &DockerManager{
 		Broker: mqtt.BrokerConfig{
-			Host: brokerHost,
+			Host: brokerHost, // must not be localhost, as container has no access 
 			Port: brokerPort,
 		},
 		ContainerPullImage: containerPullImage,
@@ -32,7 +33,7 @@ func NewDockerManager(brokerHost string, brokerPort string, containerPullImage b
 	}
 }
 
-func (manager *DockerManager) StartOperator(operator operatorEntities.StartOperatorMessage) (containerId string, err error) {
+func (manager *DockerManager) StartOperator(operator operatorEntities.StartOperatorControlCommand) (containerId string, err error) {
 	operatorConfig, err := json.Marshal(operator.OperatorConfig)
 	if err != nil {
 		panic(err)
@@ -98,11 +99,23 @@ func (manager *DockerManager) RunContainer(imageName string, env []string, pull 
 		_, _ = io.Copy(os.Stdout, out)
 	}
 	network := manager.ContainerNetwork
-	resp, err := cli.ContainerCreate(ctx, &container.Config{
-		Image: imageName,
-		Env:   env,
-	}, &container.HostConfig{NetworkMode: container.NetworkMode(network)}, nil, nil,
-		"fog-"+pipelineId+"-"+operatorId)
+	resp, err := cli.ContainerCreate(
+		ctx, 
+		&container.Config{
+			Image: imageName,
+			Env:   env,
+		}, 
+		&container.HostConfig{
+			NetworkMode: container.NetworkMode(network),
+			RestartPolicy: container.RestartPolicy{
+				Name: "on-failure",
+				MaximumRetryCount: 5,
+			},
+		}, 
+		nil, 
+		nil,
+		"fog-"+pipelineId+"-"+operatorId,
+	)
 	if err != nil {
 		return "", err
 	}
@@ -235,8 +248,9 @@ func (manager *DockerManager) RemoveContainer(id string) (err error) {
 				return err
 			}
 			fmt.Println("Success")
+			return nil
 		}
 	}
 
-	return nil
+	return errors.New(fmt.Sprintf("Container: %s not found", id))
 }

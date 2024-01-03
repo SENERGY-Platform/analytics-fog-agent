@@ -23,9 +23,9 @@ func NewMGWManager(brokerHost string, brokerPort string, moduleManagerHost strin
 		},
 	}
 }
-func (mangager *MGWManager) StartOperator(operatorJob operatorEntities.StartOperatorMessage) (containerId string, err error) {
+func (mangager *MGWManager) StartOperator(operatorJob operatorEntities.StartOperatorControlCommand) (containerId string, err error) {
 
-	//
+	// TODO add mqtt broker host 
 	return "id", nil
 }
 

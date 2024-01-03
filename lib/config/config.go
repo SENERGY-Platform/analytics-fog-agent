@@ -15,7 +15,8 @@ type ModuleManagerConfig struct {
 type Config struct {
 	ContainerNetwork    string `json:"container_network" env_var:"CONTAINER_NETWORK"`
 	ContainerBrokerHost string `json:"container_broker_host" env_var:"CONTAINER_BROKER_HOST"`
-	Broker              mqtt.BrokerConfig
+	ContainerBrokerPort string `json:"container_broker_port" env_var:"CONTAINER_BROKER_PORT"`
+	Broker              mqtt.FogBrokerConfig
 	ModuleManager       ModuleManagerConfig
 	ContainerPullImage  bool                  `json:"container_pull_image" env_var:"CONTAINER_PULL_IMAGE"`
 	ContainerManager    string                `json:"container_manager" env_var:"CONTAINER_MANAGER"`
@@ -27,7 +28,7 @@ func NewConfig(path string) (*Config, error) {
 	cfg := Config{
 		ContainerNetwork:    "bridge",
 		ContainerBrokerHost: "localhost",
-		Broker: mqtt.BrokerConfig{
+		Broker: mqtt.FogBrokerConfig{
 			Port: "1883",
 			Host: "localhost",
 		},
