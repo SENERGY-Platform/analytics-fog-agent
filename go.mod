@@ -13,7 +13,7 @@ require (
 
 require (
 	github.com/Microsoft/go-winio v0.6.1 // indirect
-	github.com/SENERGY-Platform/analytics-fog-lib v1.0.15 // indirect
+	github.com/SENERGY-Platform/analytics-fog-lib v1.1.4 // indirect
 	github.com/distribution/reference v0.5.0 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
