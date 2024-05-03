@@ -1,34 +1,135 @@
 package container_manager
 
 import (
-	"github.com/SENERGY-Platform/analytics-fog-agent/lib/config"
 	mqtt "github.com/SENERGY-Platform/analytics-fog-lib/lib/mqtt"
 	operatorEntities "github.com/SENERGY-Platform/analytics-fog-lib/lib/operator"
+	mgw_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
+	aux_client "github.com/SENERGY-Platform/mgw-module-manager/aux-client"
+	"context"
+	"net/http"
 )
 
 type MGWManager struct {
-	ModuleManager config.ModuleManagerConfig
 	Broker        mqtt.BrokerConfig
+	AuxDeploymentClient *aux_client.Client
+	DeploymentID string
+	ForcePullImg bool
 }
 
-func NewMGWManager(brokerHost string, brokerPort string, moduleManagerHost string, moduleManagerPort string) *MGWManager {
+func NewMGWManager(brokerHost, brokerPort, moduleManagerUrl, deploymentID string) *MGWManager {
+	baseClient := &http.Client{}
 	return &MGWManager{
 		Broker: mqtt.BrokerConfig{
 			Host: brokerHost,
 			Port: brokerPort,
 		},
-		ModuleManager: config.ModuleManagerConfig{
-			Host: moduleManagerHost,
-			Port: moduleManagerPort,
-		},
+		AuxDeploymentClient: aux_client.New(baseClient, moduleManagerUrl),
+		DeploymentID: deploymentID,
+		ForcePullImg: true,
 	}
 }
-func (mangager *MGWManager) StartOperator(operatorJob operatorEntities.StartOperatorControlCommand) (containerId string, err error) {
-
-	// TODO add mqtt broker host 
-	return "id", nil
+func (manager *MGWManager) CreateAndStartOperator(ctx context.Context, startRequest operatorEntities.StartOperatorControlCommand) (containerId string, err error) {
+	createAuxRequest, err := manager.CreateAuxDeploymentRequest(startRequest)
+	auxDeploymentID, err := manager.AuxDeploymentClient.CreateAuxDeployment(ctx, manager.DeploymentID, createAuxRequest, manager.ForcePullImg)
+	if err != nil {
+		return "", err
+	}
+	jobID, err := manager.AuxDeploymentClient.StartAuxDeployment(ctx, manager.DeploymentID, auxDeploymentID)
+	if err != nil {
+		return "", err
+	}
+	err = manager.WaitForJob(ctx, jobID)
+	if err != nil {
+		return "", err
+	}
+	return auxDeploymentID, nil
 }
 
-func (mangager *MGWManager) StopOperator(operatorId string) (err error) {
-	return nil
+func (manager *MGWManager) RemoveOperator(ctx context.Context, operatorID string) (err error) {
+	jobID, err := manager.AuxDeploymentClient.StopAuxDeployment(ctx, manager.DeploymentID, operatorID)
+	if err != nil {
+		return err
+	}
+	err = manager.WaitForJob(ctx, jobID)
+	if err != nil {
+		return err
+	}
+	jobID, err = manager.AuxDeploymentClient.DeleteAuxDeployment(ctx, manager.DeploymentID, operatorID, false)
+	if err != nil {
+		return err
+	}
+	err = manager.WaitForJob(ctx, jobID)
+	return err
+}
+
+func (manager *MGWManager) GetOperatorState(ctx context.Context, operatorID string) (state OperatorState, err error) {
+	auxDeployment, err := manager.AuxDeploymentClient.GetAuxDeployment(ctx, manager.DeploymentID, operatorID, false, true)
+	if err != nil {
+		return
+	}
+	state = OperatorState{
+		State: auxDeployment.Container.Info.State,
+	}
+	return
+}
+
+func (manager *MGWManager) UpdateOperator(ctx context.Context, operatorID string, updateRequest operatorEntities.StartOperatorControlCommand) (err error) {
+	updateAuxRequest, err := manager.CreateAuxDeploymentRequest(updateRequest)
+	if err != nil {
+		return err
+	}
+	jobID, err := manager.AuxDeploymentClient.UpdateAuxDeployment(ctx, manager.DeploymentID, operatorID, updateAuxRequest, false, manager.ForcePullImg)
+	if err != nil {
+		return err
+	}
+	err = manager.WaitForJob(ctx, jobID)
+	return
+}
+
+func (manager *MGWManager) GetOperatorStates(ctx context.Context) (states map[string]OperatorState, err error) {
+	filter := mgw_model.AuxDepFilter{}
+	auxDeployments, err := manager.AuxDeploymentClient.GetAuxDeployments(ctx, manager.DeploymentID, filter, false, true)
+	if err != nil {
+		return
+	}
+	for auxDepId, auxDeployment := range auxDeployments {
+		states[auxDepId] = OperatorState{
+			State: auxDeployment.Container.Info.State,
+		}
+	}
+	return
+}
+
+func (manager *MGWManager) RestartOperator(ctx context.Context, operatorID string) (err error) {
+	jobID, err := manager.AuxDeploymentClient.RestartAuxDeployment(ctx, manager.DeploymentID, operatorID)
+	if err != nil {
+		return err
+	}
+	err = manager.WaitForJob(ctx, jobID)
+	return
+}
+
+
+func (manager *MGWManager) WaitForJob(ctx context.Context, jobID string) (err error) {
+	return
+}
+
+func (manager *MGWManager) CreateAuxDeploymentRequest(request operatorEntities.StartOperatorControlCommand) (auxDepRequest mgw_model.AuxDepReq, err error) {
+	operatorConfig, inputTopics, config, err := StartOperatorConfigsToString(request)
+	if err != nil {
+		return
+	}
+	configs := map[string]string{
+		"INPUT": inputTopics,
+		"CONFIG": config,
+		"OPERATOR_CONFIG": operatorConfig,
+		"BROKER_HOST": manager.Broker.Host,
+		"BROKER_PORT": manager.Broker.Port,
+	}
+	auxDepRequest = mgw_model.AuxDepReq{
+		Image: request.ImageId,
+		Configs: configs,
+		Ref: "operator",
+	}
+	return
 }

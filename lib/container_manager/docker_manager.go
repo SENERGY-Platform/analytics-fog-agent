@@ -2,7 +2,6 @@ package container_manager
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -10,10 +9,11 @@ import (
 
 	mqtt "github.com/SENERGY-Platform/analytics-fog-lib/lib/mqtt"
 	operatorEntities "github.com/SENERGY-Platform/analytics-fog-lib/lib/operator"
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/filters"
 	docker "github.com/docker/docker/client"
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/logging"
 )
 
 type DockerManager struct {
@@ -33,33 +33,41 @@ func NewDockerManager(brokerHost string, brokerPort string, containerPullImage b
 	}
 }
 
-func (manager *DockerManager) StartOperator(operator operatorEntities.StartOperatorControlCommand) (containerId string, err error) {
-	operatorConfig, err := json.Marshal(operator.OperatorConfig)
-	if err != nil {
-		panic(err)
-	}
-	inputTopics, err := json.Marshal(operator.InputTopics)
-	if err != nil {
-		panic(err)
-	}
-	config, err := json.Marshal(operator.Config)
+func (manager *DockerManager) CreateAndStartOperator(ctx context.Context, operator operatorEntities.StartOperatorControlCommand) (containerId string, err error) {
+	operatorConfig, inputTopics, config, err := StartOperatorConfigsToString(operator)
 	if err != nil {
 		return
 	}
 	env := []string{
-		"INPUT=" + string(inputTopics),
-		"CONFIG=" + string(config),
-		"OPERATOR_CONFIG=" + string(operatorConfig),
+		"INPUT=" + inputTopics,
+		"CONFIG=" + config,
+		"OPERATOR_CONFIG=" + operatorConfig,
 		"BROKER_HOST=" + manager.Broker.Host,
 		"BROKER_PORT=" + manager.Broker.Port,
 	}
 
-	containerId, err = manager.RunContainer(operator.ImageId, env, manager.ContainerPullImage, operator.Config.PipelineId, operator.Config.OperatorId)
+	containerId, err = manager.RunContainer(ctx, operator.ImageId, env, manager.ContainerPullImage, operator.Config.PipelineId, operator.Config.OperatorId)
 	return
 }
 
-func (manager *DockerManager) StopOperator(operatorId string) (err error) {
-	return manager.RemoveContainer(operatorId)
+func (manager *DockerManager) RestartOperator(ctx context.Context, operatorID string) (err error) {
+	return
+}
+
+func (manager *DockerManager) RemoveOperator(ctx context.Context, operatorId string) (err error) {
+	return manager.RemoveContainer(ctx, operatorId)
+}
+
+func (manager *DockerManager) GetOperatorState(ctx context.Context, operatorID string) (state OperatorState, err error) {
+	return
+}
+
+func (manager *DockerManager) UpdateOperator(ctx context.Context, operatorID string, updateRequest operatorEntities.StartOperatorControlCommand) (err error) {
+	return
+}
+	
+func (manager *DockerManager) GetOperatorStates(ctx context.Context) (states map[string]OperatorState, err error) {
+	return
 }
 
 func (manager *DockerManager) PullImage(imageName string) {
@@ -69,7 +77,7 @@ func (manager *DockerManager) PullImage(imageName string) {
 		panic(err)
 	}
 
-	out, err := cli.ImagePull(ctx, imageName, types.ImagePullOptions{})
+	out, err := cli.ImagePull(ctx, imageName, image.PullOptions{})
 	if err != nil {
 		panic(err)
 	}
@@ -79,18 +87,17 @@ func (manager *DockerManager) PullImage(imageName string) {
 	io.Copy(os.Stdout, out)
 }
 
-func (manager *DockerManager) RunContainer(imageName string, env []string, pull bool, pipelineId string, operatorId string) (string, error) {
-	ctx := context.Background()
+func (manager *DockerManager) RunContainer(ctx context.Context, imageName string, env []string, pull bool, pipelineId string, operatorId string) (string, error) {
 	cli, err := docker.NewClientWithOpts(docker.FromEnv)
 	if err != nil {
 		return "", err
 	}
 
 	if pull == true {
-		out, err := cli.ImagePull(ctx, imageName, types.ImagePullOptions{})
+		out, err := cli.ImagePull(ctx, imageName, image.PullOptions{})
 		if err != nil {
 			if err.Error() == "repository name must be canonical" {
-				out, err = cli.ImagePull(ctx, "docker.io/"+imageName, types.ImagePullOptions{})
+				out, err = cli.ImagePull(ctx, "docker.io/"+imageName, image.PullOptions{})
 			}
 			if err != nil {
 				return "", err
@@ -99,6 +106,8 @@ func (manager *DockerManager) RunContainer(imageName string, env []string, pull 
 		_, _ = io.Copy(os.Stdout, out)
 	}
 	network := manager.ContainerNetwork
+	logging.Logger.Debugf("Try to create docker container %s", imageName)
+
 	resp, err := cli.ContainerCreate(
 		ctx, 
 		&container.Config{
@@ -117,14 +126,15 @@ func (manager *DockerManager) RunContainer(imageName string, env []string, pull 
 		"fog-"+pipelineId+"-"+operatorId,
 	)
 	if err != nil {
+		logging.Logger.Debugf("Could not create container: %s", err.Error())
 		return "", err
 	}
+	logging.Logger.Debugf("Try to start docker container with ID: %s", resp.ID)
 
-	if err := cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
+	if err := cli.ContainerStart(ctx, resp.ID, container.StartOptions{}); err != nil {
 		panic(err)
 	}
 
-	//
 	return resp.ID, nil
 }
 
@@ -134,7 +144,7 @@ func (manager *DockerManager) ListAllContainers() {
 		panic(err)
 	}
 
-	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
+	containers, err := cli.ContainerList(context.Background(), container.ListOptions{})
 	if err != nil {
 		panic(err)
 	}
@@ -151,7 +161,7 @@ func (manager *DockerManager) StopAllContainers() {
 		panic(err)
 	}
 
-	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+	containers, err := cli.ContainerList(ctx, container.ListOptions{})
 	if err != nil {
 		panic(err)
 	}
@@ -172,7 +182,7 @@ func (manager *DockerManager) RemoveAllContainers() {
 		panic(err)
 	}
 
-	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{
+	containers, err := cli.ContainerList(ctx, container.ListOptions{
 		Size:    false,
 		All:     true,
 		Latest:  false,
@@ -185,7 +195,7 @@ func (manager *DockerManager) RemoveAllContainers() {
 		panic(err)
 	}
 
-	removeOptions := types.ContainerRemoveOptions{Force: true}
+	removeOptions := container.RemoveOptions{Force: true}
 
 	for _, ct := range containers {
 		fmt.Print("Remove container ", ct.ID[:10], "... ")
@@ -203,7 +213,7 @@ func (manager *DockerManager) StopContainer(id string) {
 		panic(err)
 	}
 
-	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+	containers, err := cli.ContainerList(ctx, container.ListOptions{})
 	if err != nil {
 		panic(err)
 	}
@@ -219,14 +229,13 @@ func (manager *DockerManager) StopContainer(id string) {
 	}
 }
 
-func (manager *DockerManager) RemoveContainer(id string) (err error) {
-	ctx := context.Background()
+func (manager *DockerManager) RemoveContainer(ctx context.Context, id string) (err error) {
 	cli, err := docker.NewClientWithOpts(docker.FromEnv)
 	if err != nil {
 		return err
 	}
 
-	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{
+	containers, err := cli.ContainerList(ctx, container.ListOptions{
 		Size:    false,
 		All:     true,
 		Latest:  false,
@@ -239,7 +248,7 @@ func (manager *DockerManager) RemoveContainer(id string) (err error) {
 		return err
 	}
 
-	removeOptions := types.ContainerRemoveOptions{Force: true}
+	removeOptions := container.RemoveOptions{Force: true}
 
 	for _, ct := range containers {
 		if id == ct.ID {

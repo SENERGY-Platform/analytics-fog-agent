@@ -26,6 +26,5 @@ func (relay *RelayController) processStartOperatorCommand(message []byte) {
 	if err != nil {
 		logging.Logger.Error("error:", err)
 	}
-
 	relay.Agent.StartOperator(command)
 }
