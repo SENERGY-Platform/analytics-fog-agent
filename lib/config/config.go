@@ -25,13 +25,13 @@ func NewConfig(path string) (*Config, error) {
 	cfg := Config{
 		ContainerNetwork:    "bridge",
 		ContainerBrokerHost: "localhost",
+		ContainerManager: constants.MGWManager,
 		Broker: mqtt.FogBrokerConfig{
 			Port: "1883",
 			Host: "localhost",
 		},
 		ModuleManagerURL: "http://localhost",
 		ContainerPullImage: true,
-		ContainerManager:   constants.DockerManager,
 		Logger: srv_base.LoggerConfig{
 			Level:        level.Debug,
 			Utc:          true,
