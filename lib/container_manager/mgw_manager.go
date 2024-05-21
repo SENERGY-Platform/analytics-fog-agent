@@ -1,12 +1,17 @@
 package container_manager
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"net/http"
+	"time"
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/logging"
+
 	mqtt "github.com/SENERGY-Platform/analytics-fog-lib/lib/mqtt"
 	operatorEntities "github.com/SENERGY-Platform/analytics-fog-lib/lib/operator"
-	mgw_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 	aux_client "github.com/SENERGY-Platform/mgw-module-manager/aux-client"
-	"context"
-	"net/http"
+	mgw_model "github.com/SENERGY-Platform/mgw-module-manager/lib/model"
 )
 
 type MGWManager struct {
@@ -30,15 +35,20 @@ func NewMGWManager(brokerHost, brokerPort, moduleManagerUrl, deploymentID string
 }
 func (manager *MGWManager) CreateAndStartOperator(ctx context.Context, startRequest operatorEntities.StartOperatorControlCommand) (containerId string, err error) {
 	createAuxRequest, err := manager.CreateAuxDeploymentRequest(startRequest)
-	auxDeploymentID, err := manager.AuxDeploymentClient.CreateAuxDeployment(ctx, manager.DeploymentID, createAuxRequest, manager.ForcePullImg)
+	jobID, err := manager.AuxDeploymentClient.CreateAuxDeployment(ctx, manager.DeploymentID, createAuxRequest, manager.ForcePullImg)
 	if err != nil {
 		return "", err
 	}
-	jobID, err := manager.AuxDeploymentClient.StartAuxDeployment(ctx, manager.DeploymentID, auxDeploymentID)
+	createJobResponse, err := manager.WaitForJob(ctx, jobID)
 	if err != nil {
 		return "", err
 	}
-	err = manager.WaitForJob(ctx, jobID)
+	auxDeploymentID := createJobResponse.(string)
+	jobID, err = manager.AuxDeploymentClient.StartAuxDeployment(ctx, manager.DeploymentID, auxDeploymentID)
+	if err != nil {
+		return "", err
+	}
+	_, err = manager.WaitForJob(ctx, jobID)
 	if err != nil {
 		return "", err
 	}
@@ -50,7 +60,7 @@ func (manager *MGWManager) RemoveOperator(ctx context.Context, operatorID string
 	if err != nil {
 		return err
 	}
-	err = manager.WaitForJob(ctx, jobID)
+	_, err = manager.WaitForJob(ctx, jobID)
 	if err != nil {
 		return err
 	}
@@ -58,7 +68,7 @@ func (manager *MGWManager) RemoveOperator(ctx context.Context, operatorID string
 	if err != nil {
 		return err
 	}
-	err = manager.WaitForJob(ctx, jobID)
+	_, err = manager.WaitForJob(ctx, jobID)
 	return err
 }
 
@@ -82,7 +92,7 @@ func (manager *MGWManager) UpdateOperator(ctx context.Context, operatorID string
 	if err != nil {
 		return err
 	}
-	err = manager.WaitForJob(ctx, jobID)
+	_, err = manager.WaitForJob(ctx, jobID)
 	return
 }
 
@@ -106,13 +116,19 @@ func (manager *MGWManager) RestartOperator(ctx context.Context, operatorID strin
 	if err != nil {
 		return err
 	}
-	err = manager.WaitForJob(ctx, jobID)
+	_, err = manager.WaitForJob(ctx, jobID)
 	return
 }
 
 
-func (manager *MGWManager) WaitForJob(ctx context.Context, jobID string) (err error) {
-	return
+func (manager *MGWManager) WaitForJob(ctx context.Context, jobID string) (result any, err error) {
+	delay := 5 * time.Second
+	timeout := 30 * time.Second
+	jobResponse, err := aux_client.AwaitJob(ctx, manager.AuxDeploymentClient, manager.DeploymentID, jobID, delay, timeout, logging.Logger)
+	if err != nil {
+		return nil, err
+	}
+	return jobResponse.Result, errors.New(fmt.Sprintf("Error: %s Code: %d", jobResponse.Error.Message, jobResponse.Error.Code))
 }
 
 func (manager *MGWManager) CreateAuxDeploymentRequest(request operatorEntities.StartOperatorControlCommand) (auxDepRequest mgw_model.AuxDepReq, err error) {
