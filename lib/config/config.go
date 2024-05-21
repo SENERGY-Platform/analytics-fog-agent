@@ -1,6 +1,8 @@
 package config
 
 import (
+	"time"
+
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/constants"
 	"github.com/SENERGY-Platform/analytics-fog-lib/lib/mqtt"
 	srv_base "github.com/SENERGY-Platform/go-service-base/srv-base"
@@ -19,6 +21,7 @@ type Config struct {
 	Logger              srv_base.LoggerConfig `json:"logger" env_var:"LOGGER_CONFIG"`
 	DataDir             string                `json:"data_dir" env_var:"DATA_DIR"`
 	DeploymentID string `json:"deployment_id" env_var:"MGW_DID"`
+	ControlOperatorTimeout time.Duration `json:"control_operator_timeout" env_var:"CONTROL_OPERATOR_TIMEOUT"`
 }
 
 func NewConfig(path string) (*Config, error) {
@@ -39,6 +42,7 @@ func NewConfig(path string) (*Config, error) {
 			Terminal:     true,
 		},
 		DataDir: "./data",
+		ControlOperatorTimeout: 60,
 	}
 
 	err := srv_base.LoadConfig(path, &cfg, nil, nil, nil)

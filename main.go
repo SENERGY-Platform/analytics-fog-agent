@@ -83,7 +83,7 @@ func main() {
 		logging.Logger.Debug("Container Manager Type not found")
 	}
 
-	agent := agent.NewAgent(containerManager, mqttClient, conf.GetConf())
+	agent := agent.NewAgent(containerManager, mqttClient, conf.GetConf(), config.ControlOperatorTimeout)
 	relayController := relay.NewRelayController(agent)
 	mqttClient.SetRelayController(relayController)
 

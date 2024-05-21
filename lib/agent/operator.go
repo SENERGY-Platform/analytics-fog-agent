@@ -12,7 +12,7 @@ import (
 )
 
 func (agent *Agent) StopOperator(command operatorEntities.StopOperatorAgentControlCommand) {
-	ctx, cancel := context.WithTimeout(context.TODO(), 10 * time.Second)
+	ctx, cancel := context.WithTimeout(context.TODO(), agent.ControlOperatorTimeout * time.Second)
 	defer cancel()
 	err := agent.ContainerManager.RemoveOperator(ctx, command.DeploymentReference)
 	response := operatorEntities.OperatorAgentResponse{}
@@ -39,7 +39,7 @@ func (agent *Agent) StopOperator(command operatorEntities.StopOperatorAgentContr
 }
 
 func (agent *Agent) StartOperator(command operatorEntities.StartOperatorControlCommand) {
-	ctx, cancel := context.WithTimeout(context.TODO(), 10 * time.Second)
+	ctx, cancel := context.WithTimeout(context.TODO(), 60 * time.Second)
 	defer cancel()
 	logging.Logger.Debug("Try to start operator: " + command.ImageId)
 	containerId, err := agent.ContainerManager.CreateAndStartOperator(ctx, command)

@@ -17,6 +17,7 @@ package agent
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/conf"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/logging"
@@ -32,13 +33,15 @@ type Agent struct {
 	ContainerManager container_manager.Manager
 	Client           *mqtt.MQTTClient
 	Conf             agentEntities.Configuration
+	ControlOperatorTimeout time.Duration
 }
 
-func NewAgent(containerManager container_manager.Manager, mqttClient *mqtt.MQTTClient, conf agentEntities.Configuration) *Agent {
+func NewAgent(containerManager container_manager.Manager, mqttClient *mqtt.MQTTClient, conf agentEntities.Configuration, controlOperatorTimeout time.Duration) *Agent {
 	return &Agent{
 		ContainerManager: containerManager,
 		Client:           mqttClient,
 		Conf:             conf,
+		ControlOperatorTimeout: controlOperatorTimeout,
 	}
 }
 
