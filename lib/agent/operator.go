@@ -43,7 +43,6 @@ func (agent *Agent) StartOperator(command operatorEntities.StartOperatorControlC
 	defer cancel()
 	logging.Logger.Debug("Try to start operator: " + command.ImageId)
 	containerId, err := agent.ContainerManager.CreateAndStartOperator(ctx, command)
-	logging.Logger.Debug(err)
 	var responseMessage []byte
 	if err != nil {
 		response := operatorEntities.StartOperatorAgentResponse{}

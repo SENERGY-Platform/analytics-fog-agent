@@ -92,6 +92,7 @@ func (manager *MGWManager) GetOperatorStates(ctx context.Context) (states map[st
 	if err != nil {
 		return
 	}
+	states = map[string]OperatorState{}
 	for auxDepId, auxDeployment := range auxDeployments {
 		states[auxDepId] = OperatorState{
 			State: auxDeployment.Container.Info.State,

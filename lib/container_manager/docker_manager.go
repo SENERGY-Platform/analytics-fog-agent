@@ -117,7 +117,7 @@ func (manager *DockerManager) RunContainer(ctx context.Context, imageName string
 		&container.HostConfig{
 			NetworkMode: container.NetworkMode(network),
 			RestartPolicy: container.RestartPolicy{
-				Name: "on-failure",
+				Name: "on-failure", // `always` when operator shall be started after reboot  
 				MaximumRetryCount: 5,
 			},
 		}, 

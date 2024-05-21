@@ -18,7 +18,7 @@ type Config struct {
 	ContainerManager    string                `json:"container_manager" env_var:"CONTAINER_MANAGER"`
 	Logger              srv_base.LoggerConfig `json:"logger" env_var:"LOGGER_CONFIG"`
 	DataDir             string                `json:"data_dir" env_var:"DATA_DIR"`
-	DeploymentID string `json:"deployment_id" env_var:"DEPLOYMENT_ID"`
+	DeploymentID string `json:"deployment_id" env_var:"MGW_DID"`
 }
 
 func NewConfig(path string) (*Config, error) {

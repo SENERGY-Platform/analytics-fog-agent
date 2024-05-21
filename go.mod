@@ -5,8 +5,8 @@ module github.com/SENERGY-Platform/analytics-fog-agent
 require (
 	github.com/SENERGY-Platform/analytics-fog-lib v1.1.5
 	github.com/SENERGY-Platform/go-service-base v0.13.0
-	github.com/SENERGY-Platform/mgw-module-manager/aux-client v0.1.0
-	github.com/SENERGY-Platform/mgw-module-manager/lib v0.2.1
+	github.com/SENERGY-Platform/mgw-module-manager/aux-client v0.2.3
+	github.com/SENERGY-Platform/mgw-module-manager/lib v0.3.0
 	github.com/docker/distribution v2.8.3+incompatible
 	github.com/docker/docker v26.1.1+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.4.3
