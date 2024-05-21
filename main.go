@@ -22,6 +22,7 @@ import (
 	"log"
 	"os"
 	"syscall"
+	"time"
 
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/agent"
 
@@ -33,7 +34,6 @@ import (
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/logging"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/mqtt"
 	mqttLib "github.com/SENERGY-Platform/analytics-fog-lib/lib/mqtt"
-
 
 	srv_base "github.com/SENERGY-Platform/go-service-base/srv-base"
 
@@ -83,7 +83,7 @@ func main() {
 		logging.Logger.Debug("Container Manager Type not found")
 	}
 
-	agent := agent.NewAgent(containerManager, mqttClient, conf.GetConf(), config.ControlOperatorTimeout)
+	agent := agent.NewAgent(containerManager, mqttClient, conf.GetConf(), time.Duration(config.ControlOperatorTimeout))
 	relayController := relay.NewRelayController(agent)
 	mqttClient.SetRelayController(relayController)
 
