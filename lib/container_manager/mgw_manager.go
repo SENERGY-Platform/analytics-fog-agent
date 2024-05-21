@@ -128,7 +128,10 @@ func (manager *MGWManager) WaitForJob(ctx context.Context, jobID string) (result
 	if err != nil {
 		return nil, err
 	}
-	return jobResponse.Result, errors.New(fmt.Sprintf("Error: %s Code: %d", jobResponse.Error.Message, jobResponse.Error.Code))
+	if jobResponse.Error != nil {
+		return jobResponse.Result, errors.New(fmt.Sprintf("Error: %s", jobResponse.Error.Message))
+	}
+	return  jobResponse.Result, nil
 }
 
 func (manager *MGWManager) CreateAuxDeploymentRequest(request operatorEntities.StartOperatorControlCommand) (auxDepRequest mgw_model.AuxDepReq, err error) {
