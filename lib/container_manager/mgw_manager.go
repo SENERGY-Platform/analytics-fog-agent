@@ -35,19 +35,23 @@ func NewMGWManager(brokerHost, brokerPort, moduleManagerUrl, deploymentID string
 }
 func (manager *MGWManager) CreateAndStartOperator(ctx context.Context, startRequest operatorEntities.StartOperatorControlCommand) (containerId string, err error) {
 	createAuxRequest, err := manager.CreateAuxDeploymentRequest(startRequest)
+	logging.Logger.Debugf("Try to create aux deployment %s", createAuxRequest.Name)
 	jobID, err := manager.AuxDeploymentClient.CreateAuxDeployment(ctx, manager.DeploymentID, createAuxRequest, manager.ForcePullImg)
 	if err != nil {
 		return "", err
 	}
+	logging.Logger.Debugf("Wait for create aux deployment job %s", jobID)
 	createJobResponse, err := manager.WaitForJob(ctx, jobID)
 	if err != nil {
 		return "", err
 	}
 	auxDeploymentID := createJobResponse.(string)
+	logging.Logger.Debugf("Try to start aux deployment %s", createAuxRequest.Name)
 	jobID, err = manager.AuxDeploymentClient.StartAuxDeployment(ctx, manager.DeploymentID, auxDeploymentID)
 	if err != nil {
 		return "", err
 	}
+	logging.Logger.Debugf("Wait for start aux deployment job %s", jobID)
 	_, err = manager.WaitForJob(ctx, jobID)
 	if err != nil {
 		return "", err
@@ -56,18 +60,22 @@ func (manager *MGWManager) CreateAndStartOperator(ctx context.Context, startRequ
 }
 
 func (manager *MGWManager) RemoveOperator(ctx context.Context, operatorID string) (err error) {
+	logging.Logger.Debugf("Try to stop aux deployment %s", operatorID)
 	jobID, err := manager.AuxDeploymentClient.StopAuxDeployment(ctx, manager.DeploymentID, operatorID)
 	if err != nil {
 		return err
 	}
+	logging.Logger.Debugf("Wait for stop job %s", jobID)
 	_, err = manager.WaitForJob(ctx, jobID)
 	if err != nil {
 		return err
 	}
+	logging.Logger.Debugf("Try to remove aux deployment %s", operatorID)
 	jobID, err = manager.AuxDeploymentClient.DeleteAuxDeployment(ctx, manager.DeploymentID, operatorID, false)
 	if err != nil {
 		return err
 	}
+	logging.Logger.Debugf("Wait for remove job %s", jobID)
 	_, err = manager.WaitForJob(ctx, jobID)
 	return err
 }
