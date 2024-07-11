@@ -15,6 +15,9 @@ func (agent *Agent) StopOperator(command operatorEntities.StopOperatorAgentContr
 	ctx, cancel := context.WithTimeout(context.TODO(), agent.ControlOperatorTimeout * time.Second)
 	defer cancel()
 	err := agent.ContainerManager.RemoveOperator(ctx, command.DeploymentReference)
+	if err != nil {
+		logging.Logger.Errorf("Could not remove operator %s: %s", command.OperatorID, err.Error())
+	}
 	response := operatorEntities.OperatorAgentResponse{}
 	response.Agent = conf.GetConf()
 	response.OperatorId = command.OperatorID
