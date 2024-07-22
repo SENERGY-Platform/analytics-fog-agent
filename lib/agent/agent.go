@@ -21,6 +21,7 @@ import (
 
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/conf"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/logging"
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib"
 
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/constants"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/container_manager"
@@ -34,6 +35,7 @@ type Agent struct {
 	Client           *mqtt.MQTTClient
 	Conf             agentEntities.Configuration
 	ControlOperatorTimeout time.Duration
+	StorageHander lib.StorageHandler
 }
 
 func NewAgent(containerManager container_manager.Manager, mqttClient *mqtt.MQTTClient, conf agentEntities.Configuration, controlOperatorTimeout time.Duration) *Agent {
@@ -58,6 +60,11 @@ func (agent *Agent) Register() {
 }
 
 func (agent *Agent) SendPong() {
+	allOperateStates, err := agent.StorageHander.GetOperatorStates()
+	if err != nil {
+		logging.Logger.Errorf("Cant load all operator states during pong: %w", err)
+		return
+	}
 	out, err := json.Marshal(agentEntities.AgentInfoMessage{
 		ControlMessage: controlEntities.ControlMessage{
 			Command: "pong",
