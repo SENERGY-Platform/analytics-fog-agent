@@ -106,7 +106,7 @@ func (manager *DockerManager) RunContainer(ctx context.Context, imageName string
 		_, _ = io.Copy(os.Stdout, out)
 	}
 	network := manager.ContainerNetwork
-	logging.Logger.Debugf("Try to create docker container %s", imageName)
+	logging.Logger.Debug("Try to create docker container %s", imageName)
 
 	resp, err := cli.ContainerCreate(
 		ctx, 
@@ -126,10 +126,10 @@ func (manager *DockerManager) RunContainer(ctx context.Context, imageName string
 		"fog-"+pipelineId+"-"+operatorId,
 	)
 	if err != nil {
-		logging.Logger.Debugf("Could not create container: %s", err.Error())
+		logging.Logger.Debug("Could not create container: %s", err.Error())
 		return "", err
 	}
-	logging.Logger.Debugf("Try to start docker container with ID: %s", resp.ID)
+	logging.Logger.Debug("Try to start docker container with ID: %s", resp.ID)
 
 	if err := cli.ContainerStart(ctx, resp.ID, container.StartOptions{}); err != nil {
 		panic(err)

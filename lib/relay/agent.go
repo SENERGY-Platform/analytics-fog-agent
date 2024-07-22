@@ -11,7 +11,7 @@ func (relay *RelayController) processComandForAgent(message []byte) {
 	command := controlEntities.ControlMessage{}
 	err := json.Unmarshal(message, &command)
 	if err != nil {
-		logging.Logger.Error("error:", err)
+		logging.Logger.Error("cant unmarshal master command", "error", err)
 	}
 
 	switch command.Command {

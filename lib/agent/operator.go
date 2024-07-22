@@ -14,9 +14,14 @@ import (
 func (agent *Agent) StopOperator(command operatorEntities.StopOperatorAgentControlCommand) {
 	ctx, cancel := context.WithTimeout(context.TODO(), agent.ControlOperatorTimeout * time.Second)
 	defer cancel()
-	err := agent.ContainerManager.RemoveOperator(ctx, command.DeploymentReference)
+	err := agent.StorageHandler.SaveOperatorState(ctx, command.PipelineID, command.OperatorID, "stopping", "", "", nil)
 	if err != nil {
-		logging.Logger.Errorf("Could not remove operator %s: %s", command.OperatorID, err.Error())
+		logging.Logger.Error("Could not save starting state %s", err.Error())
+		return
+	}
+	err = agent.ContainerManager.RemoveOperator(ctx, command.DeploymentReference)
+	if err != nil {
+		logging.Logger.Error("Could not remove operator %s: %s", command.OperatorID, err.Error())
 	}
 	response := operatorEntities.OperatorAgentResponse{}
 	response.Agent = conf.GetConf()
@@ -26,11 +31,16 @@ func (agent *Agent) StopOperator(command operatorEntities.StopOperatorAgentContr
 		response.Success = false
 		response.Error = err.Error()
 		response.OperatorState = "not stopped"
-
 	} else {
 		response.Success = true
 		response.Error = ""
 		response.OperatorState = "stopped"
+	}
+
+	err = agent.StorageHandler.SaveOperatorState(ctx, command.PipelineID, command.OperatorID, response.OperatorState, "", "", nil)
+	if err != nil {
+		logging.Logger.Error("Could not save starting state", "error", err.Error())
+		return
 	}
 
 	out, err := json.Marshal(response)
@@ -45,10 +55,16 @@ func (agent *Agent) StartOperator(command operatorEntities.StartOperatorControlC
 	ctx, cancel := context.WithTimeout(context.TODO(), 60 * time.Second)
 	defer cancel()
 	logging.Logger.Debug("Try to start operator: " + command.ImageId)
+	err := agent.StorageHandler.SaveOperatorState(ctx, command.Config.OperatorIDs.PipelineId, command.Config.OperatorIDs.OperatorId, "starting", "", "", nil)
+	if err != nil {
+		logging.Logger.Error("Could not save starting state", "error", err.Error())
+		return
+	}
+
 	containerId, err := agent.ContainerManager.CreateAndStartOperator(ctx, command)
 	var responseMessage []byte
+	response := operatorEntities.StartOperatorAgentResponse{}
 	if err != nil {
-		response := operatorEntities.StartOperatorAgentResponse{}
 		response.Success = false
 		response.Error = err.Error()
 		response.OperatorState = "not started"
@@ -56,11 +72,10 @@ func (agent *Agent) StartOperator(command operatorEntities.StartOperatorControlC
 		response.OperatorId = command.Config.OperatorId
 		responseMessage, err = json.Marshal(response)
 		if err != nil {
-			logging.Logger.Errorf("Could not unmarshal response %s", err.Error())
+			logging.Logger.Error("Could not unmarshal response", "error", err.Error())
 		}
-		logging.Logger.Errorf("Could not start operator %s", response.Error)
+		logging.Logger.Error("Could not start operator", "error", response.Error)
 	} else {
-		response := operatorEntities.StartOperatorAgentResponse{}
 		response.Success = true
 		response.Error = ""
 		response.OperatorState = "started"
@@ -69,10 +84,15 @@ func (agent *Agent) StartOperator(command operatorEntities.StartOperatorControlC
 		response.Agent = conf.GetConf()
 		responseMessage, err = json.Marshal(response)
 		if err != nil {
-			logging.Logger.Errorf("Could not unmarshal response %s", err.Error())
-		} else {
-			logging.Logger.Infof("Operator started successfully: %s", responseMessage)
-		}
+			logging.Logger.Error("Could not unmarshal response", "error", err.Error())
+		} 
+		logging.Logger.Info("Operator started successfully: " + string(responseMessage))
+	}
+
+	err = agent.StorageHandler.SaveOperatorState(ctx, command.Config.OperatorIDs.PipelineId, command.Config.OperatorIDs.OperatorId, response.OperatorState, response.ContainerId, response.Error, nil)
+	if err != nil {
+		logging.Logger.Error("Could not save starting state", "error", err.Error())
+		return
 	}
 
 	agent.PublishMessage(operatorEntities.StartOperatorResponseFogTopic, string(responseMessage), 2)

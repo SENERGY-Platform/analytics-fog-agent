@@ -16,9 +16,11 @@
 package agent
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/conf"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/logging"
 
@@ -34,14 +36,16 @@ type Agent struct {
 	Client           *mqtt.MQTTClient
 	Conf             agentEntities.Configuration
 	ControlOperatorTimeout time.Duration
+	StorageHandler lib.StorageHandler
 }
 
-func NewAgent(containerManager container_manager.Manager, mqttClient *mqtt.MQTTClient, conf agentEntities.Configuration, controlOperatorTimeout time.Duration) *Agent {
+func NewAgent(containerManager container_manager.Manager, mqttClient *mqtt.MQTTClient, conf agentEntities.Configuration, controlOperatorTimeout time.Duration, storageHandler lib.StorageHandler) *Agent {
 	return &Agent{
 		ContainerManager: containerManager,
 		Client:           mqttClient,
 		Conf:             conf,
 		ControlOperatorTimeout: controlOperatorTimeout,
+		StorageHandler: storageHandler,
 	}
 }
 
@@ -53,23 +57,32 @@ func (agent *Agent) Register() {
 			Command: "register",
 		},
 		Conf: agentConf,
+		CurrentOperatorStates: []agentEntities.OperatorState{},
 	})
 	agent.PublishMessage(constants.AgentsTopic, string(conf), 2)
 }
 
 func (agent *Agent) SendPong() {
+	ctx := context.Background()
+	allOperateStates, err := agent.StorageHandler.GetOperatorStates(ctx)
+	if err != nil {
+		logging.Logger.Error("Cant load all operator states during pong", "error", err.Error())
+		return
+	}
 	out, err := json.Marshal(agentEntities.AgentInfoMessage{
 		ControlMessage: controlEntities.ControlMessage{
 			Command: "pong",
 		},
 		Conf: conf.GetConf(),
+		CurrentOperatorStates: allOperateStates,
 	})
 	if err != nil {
-		panic(err)
+		logging.Logger.Error("Cant marshal pong message", "error", err.Error())
 	}
 	agent.PublishMessage(constants.AgentsTopic, string(out), 1)
 }
 
 func (agent *Agent) PublishMessage(topic string, message string, qos int) {
+	logging.Logger.Debug("Publish message", "message", message, "topic", topic, "qos", qos)
 	agent.Client.Publish(topic, message, qos)
 }

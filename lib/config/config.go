@@ -7,6 +7,10 @@ import (
 	"github.com/y-du/go-log-level/level"
 )
 
+type DataBaseConfig struct {
+	Timeout int `json:"timeout" env_var:"DATABASE_TIMEOUT"`
+	ConnectionURL       string `json:"url" env_var:"DATABASE_URL"`
+}
 
 type Config struct {
 	ContainerNetwork    string `json:"container_network" env_var:"CONTAINER_NETWORK"`
@@ -20,6 +24,7 @@ type Config struct {
 	DataDir             string                `json:"data_dir" env_var:"DATA_DIR"`
 	DeploymentID string `json:"deployment_id" env_var:"MGW_DID"`
 	ControlOperatorTimeout int64 `json:"control_operator_timeout" env_var:"CONTROL_OPERATOR_TIMEOUT"`
+	Database DataBaseConfig 
 }
 
 func NewConfig(path string) (*Config, error) {
@@ -41,6 +46,10 @@ func NewConfig(path string) (*Config, error) {
 		},
 		DataDir: "./data",
 		ControlOperatorTimeout: 60,
+		Database: DataBaseConfig{
+			Timeout: 10000000000,
+			ConnectionURL: "sqlite3:./data/sqlite3.db",
+		},
 	}
 
 	err := srv_base.LoadConfig(path, &cfg, nil, nil, nil)

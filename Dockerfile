@@ -14,5 +14,6 @@ WORKDIR /root/
 
 COPY --from=builder /go/src/app/app .
 COPY --from=builder /go/src/app/version.txt .
+COPY --from=builder /go/src/app/migrations migrations
 
 ENTRYPOINT ["./app"]

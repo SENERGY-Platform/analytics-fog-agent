@@ -17,8 +17,6 @@
 package main
 
 import (
-	"errors"
-	"fmt"
 	"log"
 	"os"
 	"syscall"
@@ -33,9 +31,11 @@ import (
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/container_manager"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/logging"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/mqtt"
+	"github.com/SENERGY-Platform/analytics-fog-agent/lib/storage"
 	mqttLib "github.com/SENERGY-Platform/analytics-fog-lib/lib/mqtt"
 
 	srv_base "github.com/SENERGY-Platform/go-service-base/srv-base"
+	"github.com/SENERGY-Platform/go-service-base/watchdog"
 
 	"github.com/joho/godotenv"
 )
@@ -49,43 +49,54 @@ func main() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Print("Cant load .env file")
+		ec = 1
+		return
 	}
 
 	config, err := config.NewConfig("")
 	if err != nil {
 		log.Print("Error loading config")
+		ec = 1
+		return
 	}
 
-	logFile, err := logging.InitLogger(config.Logger)
+	err = logging.InitLogger(os.Stdout, true)
 	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, err)
-		var logFileError *srv_base.LogFileError
-		if errors.As(err, &logFileError) {
-			ec = 1
-			return
-		}
+		log.Printf("Error init logging: %s", err.Error())
+		ec = 1
+		return
 	}
-	if logFile != nil {
-		defer logFile.Close()
-	}
+	
+	logging.Logger.Debug("config: " + srv_base.ToJsonStr(config))
 
-	logging.Logger.Debugf("config: %s", srv_base.ToJsonStr(config))
-
-	watchdog := srv_base.NewWatchdog(logging.Logger, syscall.SIGINT, syscall.SIGTERM)
+	watchdog := watchdog.New(syscall.SIGINT, syscall.SIGTERM)
 
 	conf.InitConf(config.DataDir)
+
+	logging.Logger.Debug("Create new database at " + config.Database.ConnectionURL)
+	db, err := storage.NewDB(config.Database.ConnectionURL)
+	if err != nil {
+		logging.Logger.Error("Cant init DB", "error", err.Error())
+		ec = 1
+		return
+	}
+	defer db.Close()
+
+	storageHandler := storage.New(db)
 
 	mqttConfig := mqttLib.BrokerConfig(config.Broker)
 	mqttClient := mqtt.NewMQTTClient(mqttConfig, logging.Logger)
 
 	containerManager, err := container_manager.NewManager(config)
 	if err != nil {
-		logging.Logger.Debug("Container Manager Type not found")
+		logging.Logger.Error("Container Manager Type not found")
+		ec = 1
+		return
 	}
 
-	agent := agent.NewAgent(containerManager, mqttClient, conf.GetConf(), time.Duration(config.ControlOperatorTimeout))
-	relayController := relay.NewRelayController(agent)
-	mqttClient.SetRelayController(relayController)
+	agent := agent.NewAgent(containerManager, mqttClient, conf.GetConf(), time.Duration(config.ControlOperatorTimeout), storageHandler)
+	subscriptionHandler := relay.NewRelayController(agent)
+	mqttClient.SetSubscriptionHandler(subscriptionHandler)
 
 	mqttClient.ConnectMQTTBroker(nil, nil)
 	

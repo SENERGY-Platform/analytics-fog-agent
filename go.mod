@@ -3,7 +3,7 @@ module github.com/SENERGY-Platform/analytics-fog-agent
 //replace github.com/SENERGY-Platform/analytics-fog-lib => ../analytics-fog-lib
 
 require (
-	github.com/SENERGY-Platform/analytics-fog-lib v1.1.5
+	github.com/SENERGY-Platform/analytics-fog-lib v1.1.18
 	github.com/SENERGY-Platform/go-service-base v0.13.0
 	github.com/SENERGY-Platform/mgw-module-manager/aux-client v0.4.0
 	github.com/SENERGY-Platform/mgw-module-manager/lib v0.4.0
@@ -18,7 +18,9 @@ require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/SENERGY-Platform/go-base-http-client v0.0.2 // indirect
 	github.com/SENERGY-Platform/go-service-base/job-hdl/lib v0.1.0 // indirect
+	github.com/SENERGY-Platform/go-service-base/sql-db-hdl v0.0.1 // indirect
 	github.com/SENERGY-Platform/go-service-base/srv-info-hdl/lib v0.0.2 // indirect
+	github.com/SENERGY-Platform/go-service-base/watchdog v0.4.1 // indirect
 	github.com/SENERGY-Platform/mgw-module-lib v0.19.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
@@ -29,6 +31,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
+	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/term v0.5.0 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
