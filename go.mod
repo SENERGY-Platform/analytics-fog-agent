@@ -3,7 +3,7 @@ module github.com/SENERGY-Platform/analytics-fog-agent
 //replace github.com/SENERGY-Platform/analytics-fog-lib => ../analytics-fog-lib
 
 require (
-	github.com/SENERGY-Platform/analytics-fog-lib v1.1.18
+	github.com/SENERGY-Platform/analytics-fog-lib v1.1.20
 	github.com/SENERGY-Platform/go-service-base v0.13.0
 	github.com/SENERGY-Platform/mgw-module-manager/aux-client v0.4.0
 	github.com/SENERGY-Platform/mgw-module-manager/lib v0.4.0

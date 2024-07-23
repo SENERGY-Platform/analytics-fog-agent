@@ -14,7 +14,7 @@ func StartOperatorConfigsToString(startRequest operatorEntities.StartOperatorCon
 	if err != nil {
 		return "","","", err
 	}
-	config, err := json.Marshal(startRequest.Config)
+	config, err := json.Marshal(startRequest.OperatorIDs)
 	if err != nil {
 		return "","","", err
 	}

@@ -46,7 +46,7 @@ func (manager *DockerManager) CreateAndStartOperator(ctx context.Context, operat
 		"BROKER_PORT=" + manager.Broker.Port,
 	}
 
-	containerId, err = manager.RunContainer(ctx, operator.ImageId, env, manager.ContainerPullImage, operator.Config.PipelineId, operator.Config.OperatorId)
+	containerId, err = manager.RunContainer(ctx, operator.ImageId, env, manager.ContainerPullImage, operator.PipelineId, operator.OperatorId)
 	return
 }
 
