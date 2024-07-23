@@ -56,7 +56,7 @@ func (h *Handler) SaveOperatorState(ctx context.Context, pipelineID, operatorID,
 			return err
 		}
 	}
-
+	rows.Close()
 	if count == 0 {
 		_, err = tx.ExecContext(ctx, "INSERT INTO operator_states (pipeline_id, operator_id, state, container_id, error) VALUES (?, ?, ?, ?, ?);", pipelineID, operatorID, state, containerID, errMsg)
 		if err != nil {
