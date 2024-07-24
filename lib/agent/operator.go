@@ -15,16 +15,18 @@ func (agent *Agent) StopOperator(command operatorEntities.StopOperatorAgentContr
 	defer cancel()
 	err := agent.StorageHandler.SaveOperatorState(ctx, command.PipelineId, command.OperatorId, "stopping", "", "", nil)
 	if err != nil {
-		logging.Logger.Error("Could not save starting state %s", err.Error())
+		logging.Logger.Error("Could not save starting state", "error", err.Error())
 		return
 	}
 	err = agent.ContainerManager.RemoveOperator(ctx, command.ContainerId)
 	if err != nil {
-		logging.Logger.Error("Could not remove operator %s: %s", command.OperatorId, err.Error())
+		logging.Logger.Error("Could not remove operator", "operatorID", command.OperatorId, "error", err)
 	}
 	response := operatorEntities.OperatorAgentResponse{}
 	response.AgentId = agent.Conf.Id
 	response.OperatorId = command.OperatorId
+	response.Time = time.Now()
+	response.PipelineId = command.PipelineId
 
 	if err != nil {
 		response.Error = err.Error()
@@ -61,11 +63,13 @@ func (agent *Agent) StartOperator(command operatorEntities.StartOperatorControlC
 	containerId, err := agent.ContainerManager.CreateAndStartOperator(ctx, command)
 	var responseMessage []byte
 	response := operatorEntities.StartOperatorAgentResponse{}
+	response.Time = time.Now()
+	response.AgentId = agent.Conf.Id
+	response.OperatorId = command.OperatorId
+	response.PipelineId = command.PipelineId
 	if err != nil {
 		response.Error = err.Error()
 		response.DeploymentState = "not started"
-		response.AgentId = agent.Conf.Id
-		response.OperatorId = command.OperatorId
 		responseMessage, err = json.Marshal(response)
 		if err != nil {
 			logging.Logger.Error("Could not unmarshal response", "error", err.Error())
@@ -75,8 +79,6 @@ func (agent *Agent) StartOperator(command operatorEntities.StartOperatorControlC
 		response.Error = ""
 		response.DeploymentState = "started"
 		response.ContainerId = containerId
-		response.OperatorId = command.OperatorId
-		response.AgentId = agent.Conf.Id
 		responseMessage, err = json.Marshal(response)
 		if err != nil {
 			logging.Logger.Error("Could not unmarshal response", "error", err.Error())

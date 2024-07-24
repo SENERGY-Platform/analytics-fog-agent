@@ -18,6 +18,7 @@ package agent
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib"
@@ -51,7 +52,7 @@ func NewAgent(containerManager container_manager.Manager, mqttClient *mqtt.MQTTC
 
 func (agent *Agent) Register() {
 	agentConf := conf.GetConf()
-	logging.Logger.Debug("Register agent ", agentConf.Id)
+	logging.Logger.Debug(fmt.Sprintf("Register agent %s", agentConf.Id))
 	conf, _ := json.Marshal(agentEntities.AgentInfoMessage{
 		ControlMessage: controlEntities.ControlMessage{
 			Command: "register",
@@ -68,6 +69,9 @@ func (agent *Agent) SendPong() {
 	if err != nil {
 		logging.Logger.Error("Cant load all operator states during pong", "error", err.Error())
 		return
+	}
+	for idx, _ := range(allOperateStates) {
+		allOperateStates[idx].Time = time.Now()
 	}
 	out, err := json.Marshal(agentEntities.AgentInfoMessage{
 		ControlMessage: controlEntities.ControlMessage{
