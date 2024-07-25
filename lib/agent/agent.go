@@ -52,13 +52,19 @@ func NewAgent(containerManager container_manager.Manager, mqttClient *mqtt.MQTTC
 
 func (agent *Agent) Register() {
 	agentConf := conf.GetConf()
+	ctx := context.Background()
+	allOperateStates, err := agent.StorageHandler.GetOperatorStates(ctx)
+	if err != nil {
+		logging.Logger.Error("Cant load all operator states during pong", "error", err.Error())
+		return
+	}
 	logging.Logger.Debug(fmt.Sprintf("Register agent %s", agentConf.Id))
 	conf, _ := json.Marshal(agentEntities.AgentInfoMessage{
 		ControlMessage: controlEntities.ControlMessage{
 			Command: "register",
 		},
 		Conf: agentConf,
-		CurrentOperatorStates: []agentEntities.OperatorState{},
+		CurrentOperatorStates: allOperateStates,
 	})
 	agent.PublishMessage(constants.AgentsTopic, string(conf), 2)
 }
