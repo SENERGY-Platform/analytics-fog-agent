@@ -49,8 +49,6 @@ func main() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Print("Cant load .env file")
-		ec = 1
-		return
 	}
 
 	config, err := config.NewConfig("")
