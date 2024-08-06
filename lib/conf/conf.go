@@ -40,7 +40,7 @@ func InitConf(dataDir string) {
 	}
 
 	if _, err := os.Stat(configPath); err == nil {
-		logging.Logger.Debug("Read agent config from ", configPath)
+		logging.Logger.Debug(fmt.Sprintf("Read agent config from %s", configPath))
 
 		conf := readConf(dataDir)
 		if conf.Id == "" {
@@ -48,7 +48,7 @@ func InitConf(dataDir string) {
 		}
 
 	} else if os.IsNotExist(err) {
-		logging.Logger.Debug("Creating agent config at ", configPath)
+		logging.Logger.Debug(fmt.Sprintf("Creating agent config at %s", configPath))
 		f, err := os.Create(configPath)
 		if err != nil {
 			fmt.Println("error:", err)
