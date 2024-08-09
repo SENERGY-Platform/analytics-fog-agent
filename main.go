@@ -26,7 +26,7 @@ import (
 
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/conf"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/relay"
-
+	"github.com/SENERGY-Platform/analytics-fog-agent/migrations"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/config"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/container_manager"
 	"github.com/SENERGY-Platform/analytics-fog-agent/lib/logging"
@@ -79,6 +79,7 @@ func main() {
 		return
 	}
 	defer db.Close()
+	migrations.MigrateDb(config.Database.ConnectionURL)
 
 	storageHandler := storage.New(db)
 
