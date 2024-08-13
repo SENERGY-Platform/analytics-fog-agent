@@ -5,6 +5,13 @@ import (
 	"encoding/json"
 )
 
+type Config struct {
+	OutputTopic string `json:"outputTopic"`
+	PipelineID string `json:"pipelineId"`
+	OperatorID string `json:"operatorId"`
+	BaseOperatorID string `json:"baseOperatorId"`
+} 
+
 func StartOperatorConfigsToString(startRequest operatorEntities.StartOperatorControlCommand) (string, string, string, error) {
 	operatorConfig, err := json.Marshal(startRequest.OperatorConfig)
 	if err != nil {
@@ -14,9 +21,15 @@ func StartOperatorConfigsToString(startRequest operatorEntities.StartOperatorCon
 	if err != nil {
 		return "","","", err
 	}
-	config, err := json.Marshal(startRequest.OperatorIDs)
+	config := Config{
+		OutputTopic: startRequest.OutputTopic,
+		OperatorID: startRequest.OperatorIDs.OperatorId,
+		PipelineID: startRequest.OperatorIDs.PipelineId,
+		BaseOperatorID: startRequest.OperatorIDs.BaseOperatorId,
+	}
+	configMarshaled, err := json.Marshal(config)
 	if err != nil {
 		return "","","", err
 	}
-	return string(operatorConfig), string(inputTopics), string(config), nil
+	return string(operatorConfig), string(inputTopics), string(configMarshaled), nil
 }
