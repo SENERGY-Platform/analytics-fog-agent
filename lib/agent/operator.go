@@ -31,16 +31,20 @@ func (agent *Agent) StopOperator(command operatorEntities.StopOperatorAgentContr
 	if err != nil {
 		response.Error = err.Error()
 		response.DeploymentState = "not stopped"
+		err = agent.StorageHandler.SaveOperatorState(ctx, command.PipelineId, command.OperatorId, response.DeploymentState, "", "", nil)
+		if err != nil {
+			logging.Logger.Error("Could not save starting state", "error", err.Error())
+			return
+		}
 	} else {
 		response.Error = ""
 		response.DeploymentState = "stopped"
-	}
-
-	err = agent.StorageHandler.SaveOperatorState(ctx, command.PipelineId, command.OperatorId, response.DeploymentState, "", "", nil)
-	if err != nil {
-		logging.Logger.Error("Could not save starting state", "error", err.Error())
-		return
-	}
+		err = agent.StorageHandler.DeleteOperator(ctx, command.PipelineId, command.OperatorId, nil)
+		if err != nil {
+			logging.Logger.Error("Could not delete stopped operator", "error", err.Error())
+			return
+		}
+	}	
 
 	out, err := json.Marshal(response)
 	if err != nil {
