@@ -9,7 +9,7 @@ import (
 
 type DataBaseConfig struct {
 	Timeout int64 `json:"timeout" env_var:"DATABASE_TIMEOUT"`
-	ConnectionURL       string `json:"url" env_var:"DATABASE_URL"`
+	Path       string `json:"url" env_var:"DATABASE_PATH"`
 }
 
 type Config struct {
@@ -48,7 +48,7 @@ func NewConfig(path string) (*Config, error) {
 		ControlOperatorTimeout: 60,
 		Database: DataBaseConfig{
 			Timeout: 10000000000,
-			ConnectionURL: "sqlite3:./data/sqlite3.db",
+			Path: "./data/sqlite3.db",
 		},
 	}
 

@@ -71,15 +71,15 @@ func main() {
 
 	conf.InitConf(config.DataDir)
 
-	logging.Logger.Debug("Create new database at " + config.Database.ConnectionURL)
-	db, err := storage.NewDB(config.Database.ConnectionURL)
+	logging.Logger.Debug("Create new database at " + config.Database.Path)
+	db, err := storage.NewDB(config.Database.Path)
 	if err != nil {
 		logging.Logger.Error("Cant init DB", "error", err.Error())
 		ec = 1
 		return
 	}
 	defer db.Close()
-	migrations.MigrateDb(config.Database.ConnectionURL)
+	migrations.MigrateDb(config.Database.Path)
 
 	storageHandler := storage.New(db)
 
