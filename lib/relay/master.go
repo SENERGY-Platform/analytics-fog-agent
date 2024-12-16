@@ -12,7 +12,7 @@ func (relay *RelayController) processMasterMessages(message []byte) {
 	command := controlEntities.ControlMessage{}
 	err := json.Unmarshal(message, &command)
 	if err != nil {
-		logging.Logger.Error("error:", err)
+		logging.Logger.Error("error:" + err.Error())
 	}
 
 	switch command.Command {
@@ -27,7 +27,7 @@ func (relay *RelayController) processMasterRegisterMessage(message []byte) {
 	command := masterEntities.MasterInfoMessage{}
 	err := json.Unmarshal(message, &command)
 	if err != nil {
-		logging.Logger.Error("error:", err)
+		logging.Logger.Error("error:" + err.Error())
 	}
 
 	relay.Agent.Register()

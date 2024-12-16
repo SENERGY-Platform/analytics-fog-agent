@@ -1,4 +1,4 @@
-package relay 
+package relay
 
 import (
 	"encoding/json"
@@ -13,7 +13,7 @@ func (relay *RelayController) processStopOperatorCommand(message []byte) {
 	command := operatorEntities.StopOperatorAgentControlCommand{}
 	err := json.Unmarshal(message, &command)
 	if err != nil {
-		logging.Logger.Error("error:", err)
+		logging.Logger.Error("error:" + err.Error())
 	}
 
 	relay.Agent.StopOperator(command)
@@ -24,7 +24,7 @@ func (relay *RelayController) processStartOperatorCommand(message []byte) {
 	command := operatorEntities.StartOperatorControlCommand{}
 	err := json.Unmarshal(message, &command)
 	if err != nil {
-		logging.Logger.Error("error:", err)
+		logging.Logger.Error("error:" + err.Error())
 	}
 	relay.Agent.StartOperator(command)
 }
